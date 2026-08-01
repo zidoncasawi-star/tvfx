@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Sky Blue Background -->
+    <path
+        android:fillColor="#001845"
+        android:pathData="M0,0 h24 v24 h-24 z" />
+    <!-- Castle towers and walls -->
+    <path
+        android:fillColor="#00B4D8"
+        android:pathData="M4,20 h16 v-2 h-1 v-3 h-2 v3 h-2 v-6 h1 v-2 h-3 v8 h-2 v-10 h1 v-2 h-3 v12 h-2 v-5 h-2 v5 M12,3 L12.5,5 h-1 Z M8,10 L8.3,11 h-0.6 Z M16,11 L16.3,12 h-0.6 Z" />
+    <!-- Golden stars/sparkle -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M12,2 Q17,2 20,8 M6,10 Q10,3 12,2"
+        android:strokeColor="#FFD700"
+        android:strokeWidth="0.8" />
+</vector>

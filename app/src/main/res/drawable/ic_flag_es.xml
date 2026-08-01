@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Red Top -->
+    <path
+        android:fillColor="#C8102E"
+        android:pathData="M0,0 h24 v6 h-24 z" />
+    <!-- Yellow Middle (wider) -->
+    <path
+        android:fillColor="#FFD100"
+        android:pathData="M0,6 h24 v12 h-24 z" />
+    <!-- Red Bottom -->
+    <path
+        android:fillColor="#C8102E"
+        android:pathData="M0,18 h24 v6 h-24 z" />
+    <!-- Simple Crown/Coat of Arms icon on left of yellow band -->
+    <path
+        android:fillColor="#C8102E"
+        android:pathData="M5,9 h2 v4 h-2 z M6,7.5 L6.5,9 h-1 z" />
+</vector>

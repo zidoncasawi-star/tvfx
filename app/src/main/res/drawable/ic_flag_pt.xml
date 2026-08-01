@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Green -->
+    <path
+        android:fillColor="#046A38"
+        android:pathData="M0,0 h9.6 v24 h-9.6 z" />
+    <!-- Red -->
+    <path
+        android:fillColor="#DA291C"
+        android:pathData="M9.6,0 h14.4 v24 h-14.4 z" />
+    <!-- Yellow Circle (Armillary Sphere) -->
+    <path
+        android:fillColor="#FFCD00"
+        android:pathData="M9.6,12 m-3.5,0 a3.5,3.5 0 1,1 7,0 a3.5,3.5 0 1,1 -7,0" />
+    <!-- Small Shield -->
+    <path
+        android:fillColor="#DA291C"
+        android:pathData="M9.1,10.5 h1 v2.2 a0.5,0.5 0 0,1 -1,0 z" />
+</vector>

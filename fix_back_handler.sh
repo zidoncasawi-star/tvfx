@@ -1,0 +1,1 @@
+sed -i '/val isDrawerVisible = isWideScreen/i \                        BackHandler(enabled = selectedTab != MainTab.HOME && !isAuthRequired && currentlyPlaying == null) { viewModel.setTab(MainTab.HOME) }' app/src/main/java/com/example/MainActivity.kt

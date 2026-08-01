@@ -1,0 +1,6 @@
+{
+  "name": "FlixTV - Media Player",
+  "description": "تطبيق مشغل وسائط احترافي بتصميم أنيق مستوحى من نتفليكس يتيح إضافة اشتراكات Xtream Codes وروابط تشغيل خارجية ومشاهدة القنوات المباشرة والأفلام والمسلسلات",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

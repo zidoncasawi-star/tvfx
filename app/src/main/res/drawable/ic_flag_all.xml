@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Dark Blue Globe -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 Z" />
+    <!-- Green continents outline / stylized grid lines -->
+    <path
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="1.5"
+        android:pathData="M2,12 h20 M12,2 v20 M12,2 C15.5,6 15.5,18 12,22 M12,2 C8.5,6 8.5,18 12,22" />
+</vector>
