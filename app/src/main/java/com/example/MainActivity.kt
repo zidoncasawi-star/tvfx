@@ -245,16 +245,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-                                    // Dedicated Content Refresh Button
-                                    IconButton(onClick = { viewModel.refreshActivePlaylist() }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Refresh,
-                                            contentDescription = "تحديث المحتوى 🔄",
-                                            tint = Color.LightGray,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-
                                     // Dedicated Settings Button
                                     IconButton(onClick = { showSettingsDialog = true }) {
                                         Icon(
