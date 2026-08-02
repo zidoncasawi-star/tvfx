@@ -17,7 +17,7 @@ android {
     applicationId = "com.aistudio.mediaplayer.flixtvqwe"
     minSdk = 24
     targetSdk = 36
-    versionCode = 6
+    versionCode = 23
     versionName = "1.0.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
