@@ -87,6 +87,34 @@ fun HomeScreen(
         }
     }
 
+    // يمنع تكرار طلب نفس التصنيف عدة مرات أثناء انتظار وصول أول رد شبكة له
+    val requestedCategoryIds = remember { mutableSetOf<String>() }
+
+    // تحميل تدريجي عند الطلب لكل التصنيفات الحقيقية (بترتيبها كما في لوحة التحكم/السيرفر)
+    // حتى تمتلئ صفوف "كل تصنيف في مكانه" في الصفحة الرئيسية تلقائياً بدون الحاجة لفتح شاشة الأفلام/المسلسلات يدوياً.
+    // نُحمِّل دفعة صغيرة فقط في كل مرة (بدل كل التصنيفات دفعة واحدة) لتفادي إغراق السيرفر بمئات الطلبات المتزامنة —
+    // وبما أن وصول محتوى أي تصنيف يُعيد تشغيل هذا الـ effect، تُحمَّل الدفعة التالية تلقائياً وهكذا تدريجياً.
+    LaunchedEffect(vodCategories, seriesCategories, movies, series) {
+        var remainingSlots = 5
+
+        for (cat in seriesCategories) {
+            if (remainingSlots <= 0) break
+            val isLoaded = series.any { it.category == cat.id }
+            if (!isLoaded && requestedCategoryIds.add("series_${cat.id}")) {
+                onLoadCategoryStreams(cat.id, "series")
+                remainingSlots--
+            }
+        }
+        for (cat in vodCategories) {
+            if (remainingSlots <= 0) break
+            val isLoaded = movies.any { it.category == cat.id }
+            if (!isLoaded && requestedCategoryIds.add("vod_${cat.id}")) {
+                onLoadCategoryStreams(cat.id, "vod")
+                remainingSlots--
+            }
+        }
+    }
+
     // On-demand load streams of matched categories for selected country if not loaded yet
     LaunchedEffect(selectedCountryCode, vodCategories, seriesCategories, movies, series) {
         if (selectedCountryCode != "all") {
@@ -390,7 +418,7 @@ fun HomeScreen(
                 }
             }
 
-            // Movies Row
+            // Movies Row (top-rated mix, kept as a quick-access shelf)
             if (filteredMovies.isNotEmpty()) {
                 item {
                     MovieHorizontalList(
@@ -402,7 +430,7 @@ fun HomeScreen(
                 }
             }
 
-            // Series Row
+            // Series Row (top-rated mix, kept as a quick-access shelf)
             if (filteredSeries.isNotEmpty()) {
                 item {
                     SeriesHorizontalList(
@@ -411,6 +439,38 @@ fun HomeScreen(
                         onSeriesClick = onSeriesClick,
                         onFavoriteToggle = onToggleSeriesFav
                     )
+                }
+            }
+
+            // Real per-category rows: كل تصنيف كما هو مُعرَّف فعلياً في لوحة التحكم/السيرفر،
+            // بنفس ترتيبه هناك، بدل تجميع كل الأفلام/المسلسلات في سلة واحدة عامة
+            seriesCategories.forEach { cat ->
+                val catSeries = seriesByCategoryName[cat.name] ?: emptyList()
+                val filteredCatSeries = if (searchQuery.isEmpty()) catSeries else catSeries.filter { it.title.contains(searchQuery, ignoreCase = true) }
+                if (filteredCatSeries.isNotEmpty()) {
+                    item(key = "cat_ser_${cat.id}") {
+                        SeriesHorizontalList(
+                            title = cat.name,
+                            seriesList = filteredCatSeries,
+                            onSeriesClick = onSeriesClick,
+                            onFavoriteToggle = onToggleSeriesFav
+                        )
+                    }
+                }
+            }
+
+            vodCategories.forEach { cat ->
+                val catMovies = moviesByCategoryName[cat.name] ?: emptyList()
+                val filteredCatMovies = if (searchQuery.isEmpty()) catMovies else catMovies.filter { it.title.contains(searchQuery, ignoreCase = true) }
+                if (filteredCatMovies.isNotEmpty()) {
+                    item(key = "cat_mov_${cat.id}") {
+                        MovieHorizontalList(
+                            title = cat.name,
+                            movies = filteredCatMovies,
+                            onMovieClick = onMovieClick,
+                            onFavoriteToggle = onToggleMovieFav
+                        )
+                    }
                 }
             }
         } else {
