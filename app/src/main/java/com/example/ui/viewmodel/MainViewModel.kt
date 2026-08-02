@@ -210,18 +210,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _userMessage.value = "جاري المصادقة..."
             
             val localResult = repository.loginUserAccount(identifier, pass)
-            
+
             if (localResult.isSuccess) {
-                val account = localResult.getOrThrow()
+                var account = localResult.getOrThrow()
                 // Update URL if provided and different
                 if (adminUrl.isNotBlank() && adminUrl != account.adminServerUrl) {
-                    val updated = account.copy(adminServerUrl = adminUrl)
-                    repository.updateAccount(updated)
-                    completeLoginFlow(updated)
-                } else {
-                    _userMessage.value = "تم تسجيل الدخول بنجاح! أهلاً بعودتك ${account.fullName} 👋"
-                    completeLoginFlow(account)
+                    account = account.copy(adminServerUrl = adminUrl)
                 }
+
+                // تحديث كود التفعيل من السيرفر عند كل تسجيل دخول محلي — الحساب المحلي المخزَّن قد يحمل
+                // كوداً قديماً إن غيّره الأدمن لاحقاً، وبدون هذا التحديث يبقى فحص التفعيل التلقائي
+                // عند فتح التطبيق يقارن بكود قديم لا يطابق شيئاً في قاعدة البيانات فيفشل بصمت
+                try {
+                    val remoteJson = com.example.data.AdminPanelClient.loginUserOnAdminPanel(
+                        adminUrl = account.adminServerUrl.ifBlank { "https://app.flixplayer.pro" },
+                        identifier = identifier,
+                        pass = pass
+                    )
+                    val remoteCode = remoteJson?.optString("activationCode", "")
+                    if (remoteJson?.optBoolean("success", false) == true && !remoteCode.isNullOrBlank() && remoteCode != account.activationCode) {
+                        RemoteLogger.log(
+                            username = account.username, level = "DEBUG", tag = "SyncDebug",
+                            message = "Refreshed stale local activationCode on login: old=${account.activationCode} -> new=$remoteCode"
+                        )
+                        account = account.copy(activationCode = remoteCode)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                repository.updateAccount(account)
+                _userMessage.value = "تم تسجيل الدخول بنجاح! أهلاً بعودتك ${account.fullName} 👋"
+                completeLoginFlow(account)
             } else {
                 // Try Remote Login against the Admin Panel
                 try {
