@@ -4,14 +4,15 @@ import com.example.model.*
 
 object DemoDataSupplier {
 
+    // لا يوجد حساب Xtream افتراضي مكتوب في الكود — كل اشتراك يُجلب حصرياً من لوحة التحكم
     val DEMO_PLAYLIST = PlaylistEntity(
         id = 1L,
-        name = "Premium Stream Server",
+        name = "بانتظار اشتراك من الإدارة",
         type = PlaylistType.XTREAM,
-        serverUrl = "http://line.dndnscloud.ru",
-        username = "4357d392ea",
-        password = com.example.util.SecurityUtils.encrypt("dd828ce13049"),
-        isActive = true
+        serverUrl = "",
+        username = "",
+        password = "",
+        isActive = false
     )
 
     val DEMO_CHANNELS = emptyList<ChannelEntity>()

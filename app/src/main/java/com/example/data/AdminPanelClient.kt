@@ -35,21 +35,12 @@ object AdminPanelClient {
         username: String,
         activationCode: String
     ): SubscriptionCheckResult = withContext(Dispatchers.IO) {
-        // If the URL is empty or set to mock, run a smart local demo simulation
+        // لا يوجد أي حساب Xtream افتراضي/تجريبي مكتوب في الكود — الاعتماد حصرياً على لوحة التحكم.
+        // إن كان عنوان لوحة التحكم فارغاً أو غير مضبوط، الحساب يبقى ببساطة "غير مفعَّل" بانتظار سيرفر حقيقي.
         if (adminUrl.isBlank() || adminUrl.startsWith("http://mock") || adminUrl.startsWith("mock")) {
-            // For testing: if username is "activate_me", simulate activated. Otherwise pending.
-            if (username == "activate_me" || username == "rodix_user") {
-                return@withContext SubscriptionCheckResult(
-                    isActivated = true,
-                    message = "تم تفعيل الاشتراك التجريبي تلقائياً بنجاح! 🎉",
-                    xtreamHost = "http://line.dndnscloud.ru",
-                    xtreamUsername = "4357d392ea",
-                    xtreamPassword = "dd828ce13049"
-                )
-            }
             return@withContext SubscriptionCheckResult(
                 isActivated = false,
-                message = "بانتظار التفعيل التجريبي. يرجى إدخال عنوان خادم حقيقي أو استخدام اسم المستخدم 'activate_me' للتجربة السريعة."
+                message = "لم يتم ضبط عنوان لوحة التحكم بعد."
             )
         }
 

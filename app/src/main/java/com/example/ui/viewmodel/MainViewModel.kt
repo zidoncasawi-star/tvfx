@@ -404,39 +404,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun importDefaultSubscription(username: String, pass: String) {
-        viewModelScope.launch {
-            _isSyncing.value = true
-            _importProgress.value = 0
-            _userMessage.value = "جاري الاتصال بالسيرفر واستيراد المحتوى بالكامل..."
-            try {
-                val encryptedPass = com.example.util.SecurityUtils.encrypt(pass.ifBlank { "dd828ce13049" })
-                val defaultServer = "http://line.dndnscloud.ru"
-
-                val playlist = PlaylistEntity(
-                    name = "Premium Stream Server",
-                    type = PlaylistType.XTREAM,
-                    serverUrl = defaultServer,
-                    username = username.ifBlank { "4357d392ea" },
-                    password = encryptedPass,
-                    isActive = true
-                )
-                repository.savePlaylistAndSync(
-                    playlist,
-                    onProgress = { progress -> _importProgress.value = progress }
-                )
-                _userMessage.value = "تم استيراد المحتوى بالكامل بنجاح! 🎉"
-                _selectedTab.value = MainTab.HOME
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _userMessage.value = "فشل الاستيراد: تأكد من الاتصال بالشبكة وصحة بيانات الاشتراك."
-            } finally {
-                _isSyncing.value = false
-                _importProgress.value = 0
-            }
-        }
-    }
-
     fun importAdminXtreamSubscription() {
         val account = loggedInAccount.value ?: return
         if (account.xtreamHost.isBlank() || account.xtreamUsername.isBlank()) {

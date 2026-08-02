@@ -39,7 +39,6 @@ fun UserAccountSection(
     onLogin: (identifier: String, pass: String, adminUrl: String) -> Unit,
     onRegister: (email: String, username: String, pass: String, phone: String) -> Unit,
     onLogout: () -> Unit,
-    onImportXtream: (username: String, pass: String) -> Unit = { _, _ -> },
     onCheckActivation: () -> Unit = {},
     onUpdateAdminUrl: (String) -> Unit = {},
     onImportAdminXtream: () -> Unit = {},
@@ -367,27 +366,27 @@ fun UserAccountSection(
                 }
             }
 
-            // Manual Xtream Codes Import Card (fallback only — hidden once admin has assigned a real subscription,
-            // to avoid showing two identically-labeled buttons where one uses hardcoded demo credentials)
+            // بانتظار تعيين اشتراك حقيقي من الأدمن — لا يوجد أي بديل محلي/تجريبي داخل التطبيق،
+            // كل المحتوى يعتمد حصرياً على لوحة التحكم (لا حساب افتراضي مكتوب في الكود بعد الآن)
             if (playlistsEmpty && userAccount.xtreamHost.isBlank()) {
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = DarkCardBg),
                         shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, NetflixRed.copy(alpha = 0.5f)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Default.CloudDownload,
+                                    imageVector = Icons.Default.HourglassEmpty,
                                     contentDescription = null,
-                                    tint = NetflixRed,
+                                    tint = Color.LightGray,
                                     modifier = Modifier.size(26.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "استيراد البث والمحتوى 🔌",
+                                    text = "بانتظار تعيين اشتراك من الإدارة",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -397,26 +396,11 @@ fun UserAccountSection(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = "اضغط على زر الاستيراد بالأسفل لبدء تحميل القنوات المباشرة، الأفلام والمسلسلات إلى حسابك وتفعيل البث الفوري للمحتوى.",
+                                text = "لم يتم تعيين اشتراك Xtream لحسابك بعد من لوحة التحكم. اضغط \"التحقق من التفعيل\" بعد أن يُفعِّل الأدمن حسابك وسيتم الاستيراد تلقائياً.",
                                 fontSize = 13.sp,
                                 color = Color.LightGray,
                                 lineHeight = 18.sp
                             )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Button(
-                                onClick = { onImportXtream("4357d392ea", "dd828ce13049") },
-                                colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                            ) {
-                                Icon(Icons.Default.CloudDownload, contentDescription = null, tint = Color.White)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("استيراد وتفعيل البث الخاص بي 📥", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
                         }
                     }
                 }

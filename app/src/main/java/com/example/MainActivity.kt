@@ -498,9 +498,6 @@ class MainActivity : ComponentActivity() {
                                     viewModel.registerUser(email, username, pass, phone)
                                 },
                                 onLogout = { viewModel.logoutUser() },
-                                onImportXtream = { username, pass ->
-                                    viewModel.importDefaultSubscription(username, pass)
-                                },
                                 onCheckActivation = {
                                     viewModel.checkSubscription()
                                 },
@@ -661,9 +658,6 @@ class MainActivity : ComponentActivity() {
                                         viewModel.registerUser(email, username, pass, phone)
                                     },
                                     onLogout = { viewModel.logoutUser() },
-                                    onImportXtream = { username, pass ->
-                                        viewModel.importDefaultSubscription(username, pass)
-                                    },
                                     onCheckActivation = {
                                         viewModel.checkSubscription()
                                     },
