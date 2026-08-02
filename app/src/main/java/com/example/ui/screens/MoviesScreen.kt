@@ -58,9 +58,11 @@ fun MoviesScreen(
         }
     }
 
-    val filteredMovies = movies.filter {
-        (selectedCategory == "الكل" || it.category == selectedCategory) &&
-                (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
+    val filteredMovies = remember(movies, selectedCategory, searchQuery) {
+        movies.filter {
+            (selectedCategory == "الكل" || it.category == selectedCategory) &&
+                    (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
+        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {

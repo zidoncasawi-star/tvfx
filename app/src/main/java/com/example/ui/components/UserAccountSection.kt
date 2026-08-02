@@ -367,8 +367,9 @@ fun UserAccountSection(
                 }
             }
 
-            // Manual Xtream Codes Import Card
-            if (playlistsEmpty) {
+            // Manual Xtream Codes Import Card (fallback only — hidden once admin has assigned a real subscription,
+            // to avoid showing two identically-labeled buttons where one uses hardcoded demo credentials)
+            if (playlistsEmpty && userAccount.xtreamHost.isBlank()) {
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = DarkCardBg),

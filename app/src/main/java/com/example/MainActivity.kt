@@ -129,6 +129,7 @@ class MainActivity : ComponentActivity() {
                 val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
                 val downloads by viewModel.downloads.collectAsStateWithLifecycle()
                 val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
+                val importStatusText by viewModel.importStatusText.collectAsStateWithLifecycle()
 
                 val currentlyPlaying by viewModel.currentlyPlaying.collectAsStateWithLifecycle()
                 val mediaDetail by viewModel.mediaDetail.collectAsStateWithLifecycle()
@@ -864,7 +865,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "يرجى الانتظار، يتم الآن مزامنة المحتوى لتجربة مشاهدة مثالية.",
+                                        text = if (importStatusText.isNotBlank()) importStatusText else "يرجى الانتظار، يتم الآن مزامنة المحتوى لتجربة مشاهدة مثالية.",
                                         color = Color.Gray,
                                         fontSize = 13.sp,
                                         textAlign = TextAlign.Center,

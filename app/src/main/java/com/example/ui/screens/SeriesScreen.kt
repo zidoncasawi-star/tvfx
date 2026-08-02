@@ -58,9 +58,11 @@ fun SeriesScreen(
         }
     }
 
-    val filteredSeries = seriesList.filter {
-        (selectedCategory == "الكل" || it.category == selectedCategory) &&
-                (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
+    val filteredSeries = remember(seriesList, selectedCategory, searchQuery) {
+        seriesList.filter {
+            (selectedCategory == "الكل" || it.category == selectedCategory) &&
+                    (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
+        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {

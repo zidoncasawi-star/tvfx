@@ -98,7 +98,13 @@ class StreamRepository(private val db: AppDatabase) {
     fun getCategories(playlistId: Long, type: String): Flow<List<XtreamCategoryEntity>> =
         db.xtreamCategoryDao().getCategories(playlistId, type)
 
-    suspend fun fetchAndStoreStreamsByCategory(playlistId: Long, categoryId: String, type: String, forceRefresh: Boolean = false) {
+    suspend fun fetchAndStoreStreamsByCategory(
+        playlistId: Long,
+        categoryId: String,
+        type: String,
+        forceRefresh: Boolean = false,
+        onItemCount: (type: String, count: Int) -> Unit = { _, _ -> }
+    ) {
         android.util.Log.d("SyncDebug", "Saving: playlistId=$playlistId, categoryId=$categoryId, type=$type")
         val playlist = db.playlistDao().getAllPlaylists().firstOrNull()?.find { it.id == playlistId } ?: return
         if (playlist.type != PlaylistType.XTREAM) return
@@ -118,24 +124,38 @@ class StreamRepository(private val db: AppDatabase) {
         }
 
         // 3. Otherwise, fetch from network and store
+        // نُدرج النتائج على دفعات صغيرة (بدل إدراج كل التصنيف دفعة واحدة) حتى تتحدّث الواجهة تدريجياً
+        // ولا تتجمّد الشاشة عند فتح تصنيف يحتوي آلاف العناصر، ولا تنطلق كل طلبات تحميل صور الملصقات دفعة واحدة
         try {
             when (type) {
                 "live" -> {
                     val channels = XtreamCodesClient.fetchChannelsByCategory(playlist, categoryId)
-                    if (channels.isNotEmpty()) {
-                        db.channelDao().insertChannels(channels)
+                    var inserted = 0
+                    channels.chunked(100).forEach { chunk ->
+                        db.channelDao().insertChannels(chunk)
+                        inserted += chunk.size
+                        onItemCount("live", inserted)
+                        kotlinx.coroutines.delay(15)
                     }
                 }
                 "vod" -> {
                     val movies = XtreamCodesClient.fetchMoviesByCategory(playlist, categoryId)
-                    if (movies.isNotEmpty()) {
-                        db.movieDao().insertMovies(movies)
+                    var inserted = 0
+                    movies.chunked(100).forEach { chunk ->
+                        db.movieDao().insertMovies(chunk)
+                        inserted += chunk.size
+                        onItemCount("vod", inserted)
+                        kotlinx.coroutines.delay(15)
                     }
                 }
                 "series" -> {
                     val series = XtreamCodesClient.fetchSeriesByCategory(playlist, categoryId)
-                    if (series.isNotEmpty()) {
-                        db.seriesDao().insertSeries(series)
+                    var inserted = 0
+                    series.chunked(100).forEach { chunk ->
+                        db.seriesDao().insertSeries(chunk)
+                        inserted += chunk.size
+                        onItemCount("series", inserted)
+                        kotlinx.coroutines.delay(15)
                     }
                 }
             }
@@ -159,12 +179,16 @@ class StreamRepository(private val db: AppDatabase) {
         }
     }
 
-    suspend fun savePlaylistAndSync(playlist: PlaylistEntity, onProgress: (Int) -> Unit = {}): Long {
+    suspend fun savePlaylistAndSync(
+        playlist: PlaylistEntity,
+        onProgress: (Int) -> Unit = {},
+        onStatusUpdate: (String) -> Unit = {}
+    ): Long {
         db.playlistDao().deactivateAllPlaylists()
         val playlistId = db.playlistDao().insertPlaylist(playlist.copy(isActive = true))
         val active = playlist.copy(id = playlistId, isActive = true)
 
-        syncPlaylistContent(active, onProgress, forceRefresh = true)
+        syncPlaylistContent(active, onProgress, forceRefresh = true, onStatusUpdate = onStatusUpdate)
         return playlistId
     }
 
@@ -177,9 +201,15 @@ class StreamRepository(private val db: AppDatabase) {
         }
     }
 
-    suspend fun syncPlaylistContent(playlist: PlaylistEntity, onProgress: (Int) -> Unit = {}, forceRefresh: Boolean = false) {
+    // ترتيب الاستيراد: المسلسلات أولاً، ثم الأفلام، ثم القنوات المباشرة — مع تحديث نصي حي بعدد العناصر المستوردة فعلياً
+    suspend fun syncPlaylistContent(
+        playlist: PlaylistEntity,
+        onProgress: (Int) -> Unit = {},
+        forceRefresh: Boolean = false,
+        onStatusUpdate: (String) -> Unit = {}
+    ) {
         onProgress(10)
-        
+
         if (playlist.type == PlaylistType.XTREAM) {
             val hasCategories = db.xtreamCategoryDao().getCategoriesSync(playlist.id).isNotEmpty()
             val isCacheStale = System.currentTimeMillis() - playlist.lastUpdated > 6 * 60 * 60 * 1000L
@@ -191,31 +221,54 @@ class StreamRepository(private val db: AppDatabase) {
 
             // Fetch from network
             try {
-                val liveCats = XtreamCodesClient.fetchCategories(playlist, "live")
-                onProgress(30)
-                val vodCats = XtreamCodesClient.fetchCategories(playlist, "vod")
-                onProgress(60)
+                onStatusUpdate("جاري تحميل تصنيفات المسلسلات...")
                 val seriesCats = XtreamCodesClient.fetchCategories(playlist, "series")
-                onProgress(90)
-                
+                onProgress(20)
+
+                onStatusUpdate("جاري تحميل تصنيفات الأفلام...")
+                val vodCats = XtreamCodesClient.fetchCategories(playlist, "vod")
+                onProgress(35)
+
+                onStatusUpdate("جاري تحميل تصنيفات القنوات...")
+                val liveCats = XtreamCodesClient.fetchCategories(playlist, "live")
+                onProgress(50)
+
                 db.xtreamCategoryDao().deleteByPlaylist(playlist.id)
-                db.xtreamCategoryDao().insertCategories(liveCats + vodCats + seriesCats)
-                
+                db.xtreamCategoryDao().insertCategories(seriesCats + vodCats + liveCats)
+
                 // Save updated timestamp
                 val updatedPlaylist = playlist.copy(lastUpdated = System.currentTimeMillis())
                 db.playlistDao().insertPlaylist(updatedPlaylist)
-                
-                // Pre-fetch the first category of each type so the Home screen has some content initially
-                if (liveCats.isNotEmpty()) fetchAndStoreStreamsByCategory(playlist.id, liveCats.first().id, "live", forceRefresh)
-                if (vodCats.isNotEmpty()) fetchAndStoreStreamsByCategory(playlist.id, vodCats.first().id, "vod", forceRefresh)
-                if (seriesCats.isNotEmpty()) fetchAndStoreStreamsByCategory(playlist.id, seriesCats.first().id, "series", forceRefresh)
-                
+
+                // استيراد تدريجي: مسلسلات أولاً، ثم أفلام، ثم قنوات — مع عرض عدد العناصر لحظياً
+                if (seriesCats.isNotEmpty()) {
+                    fetchAndStoreStreamsByCategory(playlist.id, seriesCats.first().id, "series", forceRefresh) { _, count ->
+                        onStatusUpdate("جاري استيراد المسلسلات... ($count)")
+                    }
+                }
+                onProgress(65)
+
+                if (vodCats.isNotEmpty()) {
+                    fetchAndStoreStreamsByCategory(playlist.id, vodCats.first().id, "vod", forceRefresh) { _, count ->
+                        onStatusUpdate("جاري استيراد الأفلام... ($count)")
+                    }
+                }
+                onProgress(85)
+
+                if (liveCats.isNotEmpty()) {
+                    fetchAndStoreStreamsByCategory(playlist.id, liveCats.first().id, "live", forceRefresh) { _, count ->
+                        onStatusUpdate("جاري استيراد القنوات... ($count)")
+                    }
+                }
+                onProgress(95)
+                onStatusUpdate("اكتمل الاستيراد بنجاح 🎉")
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 // Force throw to ensure the UI knows sync failed
                 throw e
             }
-            
+
             onProgress(100)
             return
         }

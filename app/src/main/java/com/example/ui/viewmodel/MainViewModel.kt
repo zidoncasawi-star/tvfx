@@ -350,9 +350,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 password = encryptedPass,
                 isActive = true
             )
-            repository.savePlaylistAndSync(playlist) { progress ->
-                _importProgress.value = progress
-            }
+            repository.savePlaylistAndSync(
+                playlist,
+                onProgress = { progress -> _importProgress.value = progress },
+                onStatusUpdate = { status -> _importStatusText.value = status }
+            )
             _userMessage.value = "تم استيراد اشتراكك المخصص بنجاح! مشاهدة ممتعة 🎉"
             _selectedTab.value = MainTab.HOME
         } catch (e: Exception) {
@@ -361,6 +363,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } finally {
             _isSyncing.value = false
             _importProgress.value = 0
+            _importStatusText.value = ""
         }
     }
 
@@ -397,9 +400,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     password = encryptedPass,
                     isActive = true
                 )
-                repository.savePlaylistAndSync(playlist) { progress ->
-                    _importProgress.value = progress
-                }
+                repository.savePlaylistAndSync(
+                    playlist,
+                    onProgress = { progress -> _importProgress.value = progress }
+                )
                 _userMessage.value = "تم استيراد المحتوى بالكامل بنجاح! 🎉"
                 _selectedTab.value = MainTab.HOME
             } catch (e: Exception) {
@@ -446,6 +450,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _importProgress = MutableStateFlow(0)
     val importProgress: StateFlow<Int> = _importProgress.asStateFlow()
+
+    private val _importStatusText = MutableStateFlow("")
+    val importStatusText: StateFlow<String> = _importStatusText.asStateFlow()
 
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
