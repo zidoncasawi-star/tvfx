@@ -385,8 +385,8 @@ class MainActivity : ComponentActivity() {
                                         .padding(horizontal = 8.dp),
                                     horizontalAlignment = androidx.compose.ui.Alignment.Start
                                 ) {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    
+                                    Spacer(modifier = Modifier.height(12.dp))
+
                                     // Custom Drawer Header / Icon Row
                                     Row(
                                         modifier = Modifier
@@ -420,7 +420,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
 
                                     // Navigation Items
                                     val navItems = listOf(
