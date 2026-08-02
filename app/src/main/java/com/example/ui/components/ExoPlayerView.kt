@@ -168,6 +168,7 @@ fun ExoPlayerView(
     // Intelligent Auto-Reconnect States
     var isAutoReconnecting by remember { mutableStateOf(false) }
     var reconnectAttempt by remember { mutableIntStateOf(0) }
+    var hasFailedPermanently by remember { mutableStateOf(false) }
     val maxReconnectAttempts = 5
 
     // Auto-Reconnect Coroutine
@@ -198,6 +199,10 @@ fun ExoPlayerView(
                 if (reconnectAttempt < maxReconnectAttempts) {
                     isAutoReconnecting = true
                     reconnectAttempt += 1
+                } else {
+                    // استنفدنا كل المحاولات — أوقف الدوران اللانهائي وأظهر رسالة فشل واضحة بدل شاشة معلَّقة للأبد
+                    isAutoReconnecting = false
+                    hasFailedPermanently = true
                 }
             }
 
@@ -265,6 +270,61 @@ fun ExoPlayerView(
             },
             modifier = Modifier.fillMaxSize()
         )
+
+        // فشل نهائي بعد استنفاد كل محاولات إعادة الاتصال — رسالة واضحة بدل تجمّد دائري للأبد
+        if (hasFailedPermanently) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "تعذّر تشغيل هذا البث",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "تأكد من اتصال الإنترنت أو جرّب قناة/فيلماً آخر لاحقاً.",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Surface(
+                            onClick = {
+                                hasFailedPermanently = false
+                                reconnectAttempt = 0
+                                exoPlayer.prepare()
+                                exoPlayer.play()
+                            },
+                            color = NetflixRed,
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(
+                                text = "إعادة المحاولة",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
+                            )
+                        }
+                        Surface(
+                            onClick = onClose,
+                            color = Color.White.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(
+                                text = "إغلاق",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         // Minimal Loading Indicator & Intelligent Reconnection Status Overlay
         if (isAutoReconnecting || isBuffering) {

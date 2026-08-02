@@ -3,12 +3,14 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Grey/Black background -->
+    <!-- أيقونة عامة لتمثيل تصنيف "أفلام ومسلسلات عالمية" بدون استخدام أي شعار تجاري حقيقي -->
     <path
-        android:fillColor="#111111"
+        android:fillColor="#1D1D1F"
         android:pathData="M0,0 h24 v24 h-24 z" />
-    <!-- Stylized Apple Logo -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M12,18.5 C10.8,18.5 9.7,17.7 8.8,17.7 C7.9,17.7 7,18.4 6,18.4 C4,18.4 2.5,15.5 2.5,12.5 C2.5,9.5 4.5,7.8 6.5,7.8 C7.5,7.8 8.2,8.4 9,8.4 C9.8,8.4 10.3,7.8 11.5,7.8 C13.5,7.8 15,9.2 15.5,10.8 C12,12.3 12,16 15.5,17 C14.7,18.2 13.5,18.5 12,18.5 Z M12.5,4 C13.5,4 14.5,5 14,6.5 C13,7.5 12,7 11.5,6.5 C11.5,5.2 12,4 12.5,4 Z" />
+        android:pathData="M7,8 h10 v9 h-10 z" />
+    <path
+        android:fillColor="#1D1D1F"
+        android:pathData="M9.5,10 h5 v5 h-5 z" />
 </vector>

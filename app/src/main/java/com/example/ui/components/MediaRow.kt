@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.model.ChannelEntity
 import com.example.model.MovieEntity
@@ -82,6 +84,47 @@ fun getAdaptiveCardSpacing(): androidx.compose.ui.unit.Dp {
     }
 }
 
+// صورة ملصق مع عنصر نائب واضح (أيقونة + خلفية) بدل مربع أسود فارغ عند فشل تحميل الصورة أو عدم توفرها من السيرفر
+@Composable
+fun PosterImage(url: String, contentDescription: String, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.background(Color(0xFF23222E)), contentAlignment = Alignment.Center) {
+        if (url.isBlank()) {
+            Icon(
+                imageVector = Icons.Default.Movie,
+                contentDescription = contentDescription,
+                tint = Color.White.copy(alpha = 0.25f),
+                modifier = Modifier.size(36.dp)
+            )
+        } else {
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(url)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = contentDescription,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                loading = {
+                    Icon(
+                        imageVector = Icons.Default.Movie,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.15f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                },
+                error = {
+                    Icon(
+                        imageVector = Icons.Default.Movie,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.25f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            )
+        }
+    }
+}
+
 @Composable
 fun MediaRowTitle(title: String, modifier: Modifier = Modifier) {
     Text(
@@ -117,13 +160,9 @@ fun MovieCard(
         colors = CardDefaults.cardColors(containerColor = com.example.ui.theme.DarkCardBg)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(movie.posterUrl)
-                    .crossfade(true)
-                    .build(),
+            PosterImage(
+                url = movie.posterUrl,
                 contentDescription = movie.title,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -212,13 +251,9 @@ fun SeriesCard(
         colors = CardDefaults.cardColors(containerColor = com.example.ui.theme.DarkCardBg)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(series.posterUrl)
-                    .crossfade(true)
-                    .build(),
+            PosterImage(
+                url = series.posterUrl,
                 contentDescription = series.title,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -303,13 +338,9 @@ fun ChannelCard(
         colors = CardDefaults.cardColors(containerColor = com.example.ui.theme.DarkCardBg)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(channel.logoUrl)
-                    .crossfade(true)
-                    .build(),
+            PosterImage(
+                url = channel.logoUrl,
                 contentDescription = channel.name,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
