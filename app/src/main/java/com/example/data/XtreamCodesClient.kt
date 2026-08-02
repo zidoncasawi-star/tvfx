@@ -19,6 +19,7 @@ object XtreamCodesClient {
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS) // بعض التصنيفات على حسابات ضخمة (عشرات آلاف العناصر) تحتاج وقتاً أطول لتحميل استجابة JSON الكبيرة
         .writeTimeout(30, TimeUnit.SECONDS)
+        .dns(DohDns) // يتجاوز حظر/تسميم DNS من الراوتر أو مزوّد الإنترنت عبر Cloudflare DoH كخطة بديلة
         .build()
 
     suspend fun fetchPlaylistData(playlist: PlaylistEntity): ParsedPlaylistResult = withContext(Dispatchers.IO) {
