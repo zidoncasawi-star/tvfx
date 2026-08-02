@@ -258,15 +258,14 @@ fun MediaDetailSheet(
                             }
                         }
 
-                        // Season Filter Chips
+                        // Season Filter Chips (قابلة للتمرير أفقياً لتفادي التشوه عند وجود مواسم كثيرة)
                         if (availableSeasons.isNotEmpty()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(vertical = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                for (season in availableSeasons) {
+                                items(availableSeasons) { season ->
                                     val isSelected = season == selectedSeason
                                     FilterChip(
                                         selected = isSelected,

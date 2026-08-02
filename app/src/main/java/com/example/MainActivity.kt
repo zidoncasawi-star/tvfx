@@ -18,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -158,7 +157,6 @@ class MainActivity : ComponentActivity() {
 
                 val configuration = androidx.compose.ui.platform.LocalConfiguration.current
                 val isWideScreen = configuration.screenWidthDp >= 600
-                var isDrawerExpanded by remember { mutableStateOf(false) }
 
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -357,132 +355,12 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         BackHandler(enabled = selectedTab != MainTab.HOME && !isAuthRequired && currentlyPlaying == null) { viewModel.setTab(MainTab.HOME) }
-                        val isDrawerVisible = isWideScreen && currentlyPlaying == null && !isAuthRequired
-                        val contentPaddingStart = if (isDrawerVisible) 72.dp else 0.dp
-
-                        if (isDrawerVisible) {
-                            val drawerWidth by animateDpAsState(
-                                targetValue = if (isDrawerExpanded) 220.dp else 72.dp,
-                                label = "drawerWidth"
-                            )
-                            Surface(
-                                color = com.example.ui.theme.DarkCardBg,
-                                contentColor = Color.White,
-                                modifier = Modifier
-                                    .width(drawerWidth)
-                                    .fillMaxHeight()
-                                    .align(androidx.compose.ui.Alignment.CenterStart)
-                                    .zIndex(1f)
-                                    ,
-                                border = androidx.compose.foundation.BorderStroke(
-                                    width = 1.dp,
-                                    color = Color.White.copy(alpha = 0.08f)
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp),
-                                    horizontalAlignment = androidx.compose.ui.Alignment.Start
-                                ) {
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    // Custom Drawer Header / Icon Row
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { isDrawerExpanded = !isDrawerExpanded }
-                                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Menu,
-                                            contentDescription = "Menu",
-                                            tint = parsedAccentColor,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        if (isDrawerExpanded) {
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                                Text(
-                                                    text = "FLIX",
-                                                    color = parsedAccentColor,
-                                                    fontWeight = FontWeight.Black,
-                                                    fontSize = 18.sp
-                                                )
-                                                Text(
-                                                    text = "TV",
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 18.sp
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.height(8.dp))
-
-                                    // Navigation Items
-                                    val navItems = listOf(
-                                        MainTab.HOME to (Icons.Default.Home to "home"),
-                                        MainTab.LIVE_TV to (Icons.Default.Tv to "live_tv"),
-                                        MainTab.MOVIES to (Icons.Default.Movie to "movies"),
-                                        MainTab.SERIES to (Icons.Default.VideoLibrary to "series"),
-                                        MainTab.FAVORITES to (Icons.Default.Favorite to "favorites"),
-                                        MainTab.USER_ACCOUNT to (Icons.Default.AccountCircle to "my_account")
-                                    )
-
-                                    navItems.forEach { (tab, info) ->
-                                        val isSelected = selectedTab == tab
-                                        var isItemFocused by remember { mutableStateOf(false) }
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(50.dp)
-                                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                                                .background(
-                                                    when {
-                                                        isSelected -> parsedAccentColor.copy(alpha = 0.15f)
-                                                        isItemFocused -> Color.White.copy(alpha = 0.08f)
-                                                        else -> Color.Transparent
-                                                    }
-                                                )
-                                                .onFocusChanged { isItemFocused = it.isFocused }
-                                                .clickable { viewModel.setTab(tab) }
-                                                .padding(horizontal = 12.dp),
-                                            contentAlignment = androidx.compose.ui.Alignment.CenterStart
-                                        ) {
-                                            Row(
-                                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = info.first,
-                                                    contentDescription = LocalizationHelper.translate(info.second, appLanguage),
-                                                    tint = if (isSelected || isItemFocused) parsedAccentColor else Color.LightGray,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                                if (isDrawerExpanded) {
-                                                    Spacer(modifier = Modifier.width(12.dp))
-                                                    Text(
-                                                        text = LocalizationHelper.translate(info.second, appLanguage),
-                                                        color = if (isSelected || isItemFocused) parsedAccentColor else Color.White,
-                                                        fontSize = 13.sp,
-                                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                        maxLines = 1
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-                                }
-                            }
-                        }
+                        // لا تُعرض أي قائمة تنقّل فوق شاشة القنوات المباشرة (Live TV) بناءً على طلب صريح
+                        val isFloatingNavVisible = isWideScreen && currentlyPlaying == null && !isAuthRequired && selectedTab != MainTab.LIVE_TV
 
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(start = contentPaddingStart)
                         ) {
                         if (isAuthRequired) {
                             UserAccountSection(
@@ -855,6 +733,63 @@ class MainActivity : ComponentActivity() {
                                         textAlign = TextAlign.Center,
                                         lineHeight = 20.sp
                                     )
+                                }
+                            }
+                        }
+
+                        // شريط تنقّل سفلي عائم (للشاشات العريضة/التلفاز فقط) — لا يظهر في وضع القنوات المباشرة
+                        if (isFloatingNavVisible) {
+                            val floatingNavItems = listOf(
+                                MainTab.HOME to (Icons.Default.Home to "home"),
+                                MainTab.LIVE_TV to (Icons.Default.Tv to "live_tv"),
+                                MainTab.MOVIES to (Icons.Default.Movie to "movies"),
+                                MainTab.SERIES to (Icons.Default.VideoLibrary to "series"),
+                                MainTab.FAVORITES to (Icons.Default.Favorite to "favorites"),
+                                MainTab.USER_ACCOUNT to (Icons.Default.AccountCircle to "my_account")
+                            )
+                            Surface(
+                                color = Color(0xFF17171B),
+                                contentColor = Color.White,
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                                shadowElevation = 12.dp,
+                                modifier = Modifier
+                                    .align(androidx.compose.ui.Alignment.BottomCenter)
+                                    .padding(bottom = 20.dp)
+                                    .zIndex(2f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    floatingNavItems.forEach { (tab, info) ->
+                                        val isSelected = selectedTab == tab
+                                        Row(
+                                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
+                                                .background(if (isSelected) parsedAccentColor.copy(alpha = 0.85f) else Color.Transparent)
+                                                .clickable { viewModel.setTab(tab) }
+                                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = info.first,
+                                                contentDescription = LocalizationHelper.translate(info.second, appLanguage),
+                                                tint = if (isSelected) Color.White else Color.LightGray,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            if (isSelected) {
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = LocalizationHelper.translate(info.second, appLanguage),
+                                                    color = Color.White,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 1
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
