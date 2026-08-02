@@ -54,7 +54,7 @@ val countriesList = listOf(
         flag = "🇫🇷",
         keywords = listOf(
             "|fr|", "[fr]", "(fr)", "france", "french", "|eu|", "[eu]", "disney+ [fr]", "netflix [fr]", "prime+ [fr]", "apple tv [fr]",
-            "l'equipe", "ligue 1", "canal+", "meilleur des"
+            "l'equipe", "ligue 1", "canal+", "meilleur des", "|be|", "[be]", "(be)", "belgique", "belgium"
         )
     ),
     CountryFilter(
@@ -63,22 +63,8 @@ val countriesList = listOf(
         flag = "🇺🇸",
         keywords = listOf(
             "|us|", "[us]", "(us)", "|usa|", "[usa]", "|en|", "[en]", "|na|", "[na]", "|am|", "[am]", "english",
-            "united states", "america", "usa", "hulu", "peacock", "paramount+", "hbo", "espn", "nba", "nfl", "nhl", "mlb", "24/7 english", "cricket"
-        )
-    ),
-    CountryFilter(
-        code = "gb",
-        nameResId = R.string.country_gb,
-        flag = "🇬🇧",
-        keywords = listOf(
-            "|uk|", "[uk]", "(uk)", "united kingdom", "britain", "uk", "sky store", "discovery+"
-        )
-    ),
-    CountryFilter(
-        code = "ca",
-        nameResId = R.string.country_ca,
-        flag = "🇨🇦",
-        keywords = listOf(
+            "united states", "america", "usa", "hulu", "peacock", "paramount+", "hbo", "espn", "nba", "nfl", "nhl", "mlb", "24/7 english", "cricket",
+            "|uk|", "[uk]", "(uk)", "united kingdom", "britain", "uk", "sky store", "discovery+",
             "canada", "canadian"
         )
     ),
@@ -95,7 +81,10 @@ val countriesList = listOf(
         code = "de",
         nameResId = R.string.country_de,
         flag = "🇩🇪",
-        keywords = listOf("|de|", "[de]", "(de)", "germany", "deutschland", "deutsch")
+        keywords = listOf(
+            "|de|", "[de]", "(de)", "germany", "deutschland", "deutsch",
+            "|ch|", "[ch]", "(ch)", "swiss", "suisse", "|at|", "[at]", "(at)", "austria", "österreich"
+        )
     ),
     CountryFilter(
         code = "it",
@@ -179,7 +168,13 @@ val countriesList = listOf(
         code = "sc",
         nameResId = R.string.country_sc,
         flag = "🇸🇪",
-        keywords = listOf("scandinavia", "scandinavian")
+        keywords = listOf(
+            "scandinavia", "scandinavian",
+            "|se|", "[se]", "(se)", "sweden", "sverige",
+            "|no|", "[no]", "(no)", "norway", "norge",
+            "|dk|", "[dk]", "(dk)", "denmark", "danmark",
+            "|is|", "[is]", "(is)", "iceland"
+        )
     ),
     CountryFilter(
         code = "so",
@@ -200,42 +195,6 @@ val countriesList = listOf(
         keywords = listOf("exyu", "ex-yu", "yugoslavia")
     ),
     CountryFilter(
-        code = "be",
-        nameResId = R.string.country_be,
-        flag = "🇧🇪",
-        keywords = listOf("|be|", "[be]", "(be)", "belgique", "belgium")
-    ),
-    CountryFilter(
-        code = "ch",
-        nameResId = R.string.country_ch,
-        flag = "🇨🇭",
-        keywords = listOf("|ch|", "[ch]", "(ch)", "swiss", "suisse")
-    ),
-    CountryFilter(
-        code = "at",
-        nameResId = R.string.country_at,
-        flag = "🇦🇹",
-        keywords = listOf("|at|", "[at]", "(at)", "austria", "österreich")
-    ),
-    CountryFilter(
-        code = "se",
-        nameResId = R.string.country_se,
-        flag = "🇸🇪",
-        keywords = listOf("|se|", "[se]", "(se)", "sweden", "sverige")
-    ),
-    CountryFilter(
-        code = "no",
-        nameResId = R.string.country_no,
-        flag = "🇳🇴",
-        keywords = listOf("|no|", "[no]", "(no)", "norway", "norge")
-    ),
-    CountryFilter(
-        code = "dk",
-        nameResId = R.string.country_dk,
-        flag = "🇩🇰",
-        keywords = listOf("|dk|", "[dk]", "(dk)", "denmark", "danmark")
-    ),
-    CountryFilter(
         code = "fi",
         nameResId = R.string.country_fi,
         flag = "🇫🇮",
@@ -252,12 +211,6 @@ val countriesList = listOf(
         nameResId = R.string.country_ir,
         flag = "🇮🇷",
         keywords = listOf("|ir|", "[ir]", "(ir)", "iran", "persian")
-    ),
-    CountryFilter(
-        code = "is",
-        nameResId = R.string.country_is,
-        flag = "🇮🇸",
-        keywords = listOf("|is|", "[is]", "(is)", "iceland")
     ),
     CountryFilter(
         code = "netflix",
@@ -302,7 +255,7 @@ fun CountryFlagsFilterBar(
 
     Column(modifier = modifier.padding(vertical = 4.dp)) {
         Text(
-            text = "تصفية حسب الدولة والمنطقة",
+            text = "تصفية حسب اللغة",
             color = Color.White.copy(alpha = 0.9f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
