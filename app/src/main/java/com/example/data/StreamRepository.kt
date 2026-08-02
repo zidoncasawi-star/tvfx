@@ -98,6 +98,35 @@ class StreamRepository(private val db: AppDatabase) {
     fun getCategories(playlistId: Long, type: String): Flow<List<XtreamCategoryEntity>> =
         db.xtreamCategoryDao().getCategories(playlistId, type)
 
+    // يحاول عدة تصنيفات بالترتيب حتى يجد أول تصنيف يحتوي محتوى فعلياً ويُحمِّله —
+    // مهم جداً في الحسابات الضخمة (آلاف التصنيفات) حيث قد يكون أول تصنيف في القائمة فارغاً بالمصادفة،
+    // فيبقى المستخدم أمام شاشة فارغة رغم نجاح الاستيراد تقنياً
+    suspend fun fetchFirstNonEmptyCategory(
+        playlistId: Long,
+        categories: List<com.example.model.XtreamCategoryEntity>,
+        type: String,
+        forceRefresh: Boolean,
+        maxAttempts: Int = 8,
+        onItemCount: (type: String, count: Int) -> Unit = { _, _ -> }
+    ) {
+        for (cat in categories.take(maxAttempts)) {
+            val countBefore = when (type) {
+                "live" -> db.channelDao().getChannelsByPlaylistAndCategorySync(playlistId, cat.id).size
+                "vod" -> db.movieDao().getMoviesByPlaylistAndCategorySync(playlistId, cat.id).size
+                "series" -> db.seriesDao().getSeriesByPlaylistAndCategorySync(playlistId, cat.id).size
+                else -> 0
+            }
+            fetchAndStoreStreamsByCategory(playlistId, cat.id, type, forceRefresh, onItemCount)
+            val countAfter = when (type) {
+                "live" -> db.channelDao().getChannelsByPlaylistAndCategorySync(playlistId, cat.id).size
+                "vod" -> db.movieDao().getMoviesByPlaylistAndCategorySync(playlistId, cat.id).size
+                "series" -> db.seriesDao().getSeriesByPlaylistAndCategorySync(playlistId, cat.id).size
+                else -> 0
+            }
+            if (countAfter > countBefore) return // وجدنا تصنيفاً بمحتوى حقيقي، توقّف هنا
+        }
+    }
+
     suspend fun fetchAndStoreStreamsByCategory(
         playlistId: Long,
         categoryId: String,
@@ -240,23 +269,25 @@ class StreamRepository(private val db: AppDatabase) {
                 val updatedPlaylist = playlist.copy(lastUpdated = System.currentTimeMillis())
                 db.playlistDao().insertPlaylist(updatedPlaylist)
 
-                // استيراد تدريجي: مسلسلات أولاً، ثم أفلام، ثم قنوات — مع عرض عدد العناصر لحظياً
+                // استيراد تدريجي: مسلسلات أولاً، ثم أفلام، ثم قنوات — مع عرض عدد العناصر لحظياً.
+                // نجرّب عدة تصنيفات (حتى 8) بدل الاكتفاء بأول واحد فقط، لأن أول تصنيف في القائمة
+                // قد يكون فارغاً بالمصادفة على حسابات ضخمة تحتوي آلاف التصنيفات
                 if (seriesCats.isNotEmpty()) {
-                    fetchAndStoreStreamsByCategory(playlist.id, seriesCats.first().id, "series", forceRefresh) { _, count ->
+                    fetchFirstNonEmptyCategory(playlist.id, seriesCats, "series", forceRefresh) { _, count ->
                         onStatusUpdate("جاري استيراد المسلسلات... ($count)")
                     }
                 }
                 onProgress(65)
 
                 if (vodCats.isNotEmpty()) {
-                    fetchAndStoreStreamsByCategory(playlist.id, vodCats.first().id, "vod", forceRefresh) { _, count ->
+                    fetchFirstNonEmptyCategory(playlist.id, vodCats, "vod", forceRefresh) { _, count ->
                         onStatusUpdate("جاري استيراد الأفلام... ($count)")
                     }
                 }
                 onProgress(85)
 
                 if (liveCats.isNotEmpty()) {
-                    fetchAndStoreStreamsByCategory(playlist.id, liveCats.first().id, "live", forceRefresh) { _, count ->
+                    fetchFirstNonEmptyCategory(playlist.id, liveCats, "live", forceRefresh) { _, count ->
                         onStatusUpdate("جاري استيراد القنوات... ($count)")
                     }
                 }
