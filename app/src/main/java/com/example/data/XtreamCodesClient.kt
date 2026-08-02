@@ -351,6 +351,12 @@ object XtreamCodesClient {
             if (jsonStr != null && jsonStr.trim().startsWith("{")) {
                 val jsonObj = JSONObject(jsonStr)
                 val episodesObj = jsonObj.optJSONObject("episodes")
+                if (episodesObj == null) {
+                    RemoteLogger.log(
+                        level = "ERROR", tag = "SyncDebug",
+                        message = "fetchSeriesEpisodes seriesId=$seriesId: 'episodes' key missing/not-an-object. hasEpisodesKey=${jsonObj.has("episodes")} episodesType=${jsonObj.opt("episodes")?.javaClass?.simpleName} responsePrefix=${jsonStr.take(300)}"
+                    )
+                }
                 if (episodesObj != null) {
                     val keys = episodesObj.keys()
                     while (keys.hasNext()) {
@@ -387,9 +393,18 @@ object XtreamCodesClient {
                         }
                     }
                 }
+            } else {
+                RemoteLogger.log(
+                    level = "ERROR", tag = "SyncDebug",
+                    message = "fetchSeriesEpisodes seriesId=$seriesId: non-object response, len=${jsonStr?.length ?: -1} prefix=${jsonStr?.take(200)}"
+                )
             }
         } catch (e: Throwable) {
             e.printStackTrace()
+            RemoteLogger.log(
+                level = "ERROR", tag = "SyncDebug",
+                message = "fetchSeriesEpisodes seriesId=$seriesId EXCEPTION host=$serverUrl error=${e.javaClass.simpleName}: ${e.message}"
+            )
         }
         episodes
     }

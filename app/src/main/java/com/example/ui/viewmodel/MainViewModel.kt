@@ -663,9 +663,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val active = activePlaylist.value
                 val parts = seriesItem.id.split("_")
                 val realId = parts.lastOrNull()
+                RemoteLogger.log(
+                    level = "DEBUG", tag = "SyncDebug",
+                    message = "openSeriesDetail id=${seriesItem.id} parsedRealId=$realId activePlaylist=${active?.id} host=${active?.serverUrl}"
+                )
                 if (active != null && realId != null) {
-                    com.example.data.XtreamCodesClient.fetchSeriesEpisodes(active, realId)
+                    val result = com.example.data.XtreamCodesClient.fetchSeriesEpisodes(active, realId)
+                    RemoteLogger.log(
+                        level = if (result.isEmpty()) "ERROR" else "DEBUG", tag = "SyncDebug",
+                        message = "fetchSeriesEpisodes seriesId=$realId -> episodes=${result.size}"
+                    )
+                    result
                 } else {
+                    RemoteLogger.log(level = "ERROR", tag = "SyncDebug", message = "openSeriesDetail SKIPPED: active=$active realId=$realId")
                     emptyList()
                 }
             } else {

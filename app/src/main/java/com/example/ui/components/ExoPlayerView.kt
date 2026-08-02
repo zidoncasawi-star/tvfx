@@ -180,6 +180,23 @@ fun ExoPlayerView(
         }
     }
 
+    // مهلة للتخزين المؤقت (Buffering) اللانهائي: أحياناً لا يرمي المشغّل أي خطأ إطلاقاً
+    // (لا onPlayerError) ويبقى عالقاً في STATE_BUFFERING للأبد بصمت — بدون هذه المهلة
+    // لن تظهر رسالة الفشل أبداً حتى لو أضفناها لمسار onPlayerError فقط
+    LaunchedEffect(isBuffering) {
+        if (isBuffering) {
+            delay(25_000)
+            if (isBuffering && !hasFailedPermanently) {
+                com.example.data.RemoteLogger.log(
+                    level = "ERROR", tag = "PlayerDebug",
+                    message = "Buffering timeout (25s) with no error/ready state. url=$mediaUrl"
+                )
+                isAutoReconnecting = false
+                hasFailedPermanently = true
+            }
+        }
+    }
+
     // Load Uri
     DisposableEffect(mediaUrl) {
         val mediaItem = MediaItem.fromUri(mediaUrl)
