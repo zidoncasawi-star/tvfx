@@ -2,7 +2,9 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.item
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,13 @@ fun MoviesScreen(
                 onLoadCategoryStreams(selectedCategory)
             }
         }
+    }
+
+    // زر "تحميل المزيد" بدل الزحف التلقائي: يجلب أول تصنيف غير محمَّل بعد عند الضغط فقط
+    var isLoadingMore by remember { mutableStateOf(false) }
+    LaunchedEffect(movies) { isLoadingMore = false }
+    val nextUnloadedCategory = remember(movies, xtreamCategories) {
+        xtreamCategories.firstOrNull { cat -> movies.none { it.category == cat.id } }
     }
 
     val filteredMovies = remember(movies, selectedCategory, searchQuery) {
@@ -112,6 +121,26 @@ fun MoviesScreen(
                     onFavoriteToggle = { onToggleFavorite(movie) },
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            if (selectedCategory == "الكل" && searchQuery.isEmpty() && nextUnloadedCategory != null) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        if (isLoadingMore) {
+                            CircularProgressIndicator(color = NetflixRed, modifier = Modifier.size(28.dp))
+                        } else {
+                            OutlinedButton(onClick = {
+                                isLoadingMore = true
+                                onLoadCategoryStreams(nextUnloadedCategory.id)
+                            }) {
+                                Text("تحميل المزيد من التصنيفات")
+                            }
+                        }
+                    }
+                }
             }
         }
     }

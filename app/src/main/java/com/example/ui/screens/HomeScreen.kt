@@ -89,34 +89,40 @@ fun HomeScreen(
 
     // يمنع تكرار طلب نفس التصنيف عدة مرات أثناء انتظار وصول أول رد شبكة له
     val requestedCategoryIds = remember { mutableSetOf<String>() }
+    var isLoadingMore by remember { mutableStateOf(false) }
 
-    // تحميل تدريجي عند الطلب لكل التصنيفات الحقيقية (بترتيبها كما في لوحة التحكم/السيرفر)
-    // حتى تمتلئ صفوف "كل تصنيف في مكانه" في الصفحة الرئيسية تلقائياً بدون الحاجة لفتح شاشة الأفلام/المسلسلات يدوياً.
-    // نُحمِّل دفعة صغيرة فقط في كل مرة (بدل كل التصنيفات دفعة واحدة) لتفادي إغراق السيرفر بمئات الطلبات المتزامنة —
-    // وبما أن وصول محتوى أي تصنيف يُعيد تشغيل هذا الـ effect، تُحمَّل الدفعة التالية تلقائياً وهكذا تدريجياً.
-    LaunchedEffect(vodCategories, seriesCategories, movies, series) {
-        // طلب واحد فقط في كل مرة — مع حساب ضخم (عشرات آلاف العناصر) فإن فتح عدة اتصالات متزامنة
-        // يُحمِّل الراوتر/الشبكة بشدة وقد يتسبب في حظره من مزوّد الإنترنت. وصول محتوى هذا التصنيف
-        // يُعيد تشغيل الـ effect تلقائياً فيطلب التالي، فيبقى الاستيراد تدريجياً بمعدّل آمن.
-        // مهلة قصيرة قبل كل طلب: بعض سيرفرات Xtream تفرض حداً لعدد الطلبات في الدقيقة (لاحظنا في
-        // السجلات أن سيرفراً عمل بشكل مثالي لأول 45 ثانية ثم توقف تماماً عن الاستجابة — نمط حظر متكرر)
-        kotlinx.coroutines.delay(4_000)
+    // لا يوجد تحميل تلقائي لكل التصنيفات في الخلفية — بالضبط كما تعمل تطبيقات IPTV الاحترافية
+    // (مثل IPTV Smarters): تُعرض فقط التصنيفات التي وصل محتواها فعلياً من الاستيراد الأولي،
+    // والمزيد يُحمَّل فقط عند ضغط المستخدم على زر "تحميل المزيد" بنفسه — طلب واحد في كل مرة، بلا زحف تلقائي.
+    val hasMoreToLoad = remember(vodCategories, seriesCategories, movies, series) {
+        seriesCategories.any { cat -> series.none { it.category == cat.id } } ||
+            vodCategories.any { cat -> movies.none { it.category == cat.id } }
+    }
+
+    fun loadNextCategoryManually() {
+        if (isLoadingMore) return
         val nextSeriesCat = seriesCategories.firstOrNull { cat ->
             series.none { it.category == cat.id } && !requestedCategoryIds.contains("series_${cat.id}")
         }
         if (nextSeriesCat != null) {
             requestedCategoryIds.add("series_${nextSeriesCat.id}")
+            isLoadingMore = true
             onLoadCategoryStreams(nextSeriesCat.id, "series")
-            return@LaunchedEffect
+            return
         }
-
         val nextVodCat = vodCategories.firstOrNull { cat ->
             movies.none { it.category == cat.id } && !requestedCategoryIds.contains("vod_${cat.id}")
         }
         if (nextVodCat != null) {
             requestedCategoryIds.add("vod_${nextVodCat.id}")
+            isLoadingMore = true
             onLoadCategoryStreams(nextVodCat.id, "vod")
         }
+    }
+
+    // بمجرد وصول محتوى جديد فعلياً، أوقف مؤشر "جاري التحميل" لتفعيل الزر مجدداً
+    LaunchedEffect(movies, series) {
+        isLoadingMore = false
     }
 
     // On-demand load streams of matched categories for selected country if not loaded yet
@@ -474,6 +480,26 @@ fun HomeScreen(
                             onMovieClick = onMovieClick,
                             onFavoriteToggle = onToggleMovieFav
                         )
+                    }
+                }
+            }
+
+            // زر تحميل المزيد: تصفّح احترافي بلا زحف تلقائي في الخلفية — تماماً كما في تطبيقات IPTV المعروفة
+            if (hasMoreToLoad && searchQuery.isEmpty()) {
+                item(key = "load_more_categories") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        if (isLoadingMore) {
+                            CircularProgressIndicator(color = NetflixRed, modifier = Modifier.size(28.dp))
+                        } else {
+                            OutlinedButton(onClick = { loadNextCategoryManually() }) {
+                                Text("تحميل المزيد من التصنيفات")
+                            }
+                        }
                     }
                 }
             }
