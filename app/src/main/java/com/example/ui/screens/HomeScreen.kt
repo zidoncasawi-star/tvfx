@@ -95,23 +95,24 @@ fun HomeScreen(
     // نُحمِّل دفعة صغيرة فقط في كل مرة (بدل كل التصنيفات دفعة واحدة) لتفادي إغراق السيرفر بمئات الطلبات المتزامنة —
     // وبما أن وصول محتوى أي تصنيف يُعيد تشغيل هذا الـ effect، تُحمَّل الدفعة التالية تلقائياً وهكذا تدريجياً.
     LaunchedEffect(vodCategories, seriesCategories, movies, series) {
-        var remainingSlots = 5
-
-        for (cat in seriesCategories) {
-            if (remainingSlots <= 0) break
-            val isLoaded = series.any { it.category == cat.id }
-            if (!isLoaded && requestedCategoryIds.add("series_${cat.id}")) {
-                onLoadCategoryStreams(cat.id, "series")
-                remainingSlots--
-            }
+        // طلب واحد فقط في كل مرة — مع حساب ضخم (عشرات آلاف العناصر) فإن فتح عدة اتصالات متزامنة
+        // يُحمِّل الراوتر/الشبكة بشدة وقد يتسبب في حظره من مزوّد الإنترنت. وصول محتوى هذا التصنيف
+        // يُعيد تشغيل الـ effect تلقائياً فيطلب التالي، فيبقى الاستيراد تدريجياً بمعدّل آمن.
+        val nextSeriesCat = seriesCategories.firstOrNull { cat ->
+            series.none { it.category == cat.id } && !requestedCategoryIds.contains("series_${cat.id}")
         }
-        for (cat in vodCategories) {
-            if (remainingSlots <= 0) break
-            val isLoaded = movies.any { it.category == cat.id }
-            if (!isLoaded && requestedCategoryIds.add("vod_${cat.id}")) {
-                onLoadCategoryStreams(cat.id, "vod")
-                remainingSlots--
-            }
+        if (nextSeriesCat != null) {
+            requestedCategoryIds.add("series_${nextSeriesCat.id}")
+            onLoadCategoryStreams(nextSeriesCat.id, "series")
+            return@LaunchedEffect
+        }
+
+        val nextVodCat = vodCategories.firstOrNull { cat ->
+            movies.none { it.category == cat.id } && !requestedCategoryIds.contains("vod_${cat.id}")
+        }
+        if (nextVodCat != null) {
+            requestedCategoryIds.add("vod_${nextVodCat.id}")
+            onLoadCategoryStreams(nextVodCat.id, "vod")
         }
     }
 

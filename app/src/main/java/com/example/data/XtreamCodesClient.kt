@@ -17,7 +17,7 @@ object XtreamCodesClient {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(90, TimeUnit.SECONDS) // بعض التصنيفات على حسابات ضخمة (عشرات آلاف العناصر) تحتاج وقتاً أطول لتحميل استجابة JSON الكبيرة
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
@@ -213,7 +213,9 @@ object XtreamCodesClient {
             val jsonStr = executeGet(url)
             if (jsonStr != null && jsonStr.trim().startsWith("[")) {
                 val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
+                // حماية من تصنيف واحد ضخم بشكل غير طبيعي (آلاف العناصر) يستهلك الذاكرة/الشبكة دفعة واحدة
+                val limit = minOf(array.length(), 3000)
+                for (i in 0 until limit) {
                     val obj = array.getJSONObject(i)
                     val streamId = obj.optString("stream_id")
                     if (streamId.isNotBlank()) {
@@ -251,7 +253,8 @@ object XtreamCodesClient {
             val jsonStr = executeGet(url)
             if (jsonStr != null && jsonStr.trim().startsWith("[")) {
                 val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
+                val limit = minOf(array.length(), 3000)
+                for (i in 0 until limit) {
                     val obj = array.getJSONObject(i)
                     val streamId = obj.optString("stream_id")
                     if (streamId.isNotBlank()) {
@@ -290,7 +293,8 @@ object XtreamCodesClient {
             val jsonStr = executeGet(url)
             if (jsonStr != null && jsonStr.trim().startsWith("[")) {
                 val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
+                val limit = minOf(array.length(), 3000)
+                for (i in 0 until limit) {
                     val obj = array.getJSONObject(i)
                     val seriesId = obj.optString("series_id")
                     if (seriesId.isNotBlank()) {
