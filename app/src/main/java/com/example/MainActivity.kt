@@ -357,7 +357,7 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding)
                     ) {
                         BackHandler(enabled = selectedTab != MainTab.HOME && !isAuthRequired && currentlyPlaying == null) { viewModel.setTab(MainTab.HOME) }
-                        val isDrawerVisible = isWideScreen && currentlyPlaying == null && !isAuthRequired && selectedTab == MainTab.HOME
+                        val isDrawerVisible = isWideScreen && currentlyPlaying == null && !isAuthRequired
                         val contentPaddingStart = if (isDrawerVisible) 72.dp else 0.dp
 
                         if (isDrawerVisible) {

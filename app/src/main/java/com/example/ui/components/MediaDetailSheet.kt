@@ -3,6 +3,7 @@ package com.example.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,6 +50,25 @@ fun MediaDetailSheet(
         val matches = episodes.filter { it.seasonNum == selectedSeason }
         if (matches.isNotEmpty()) matches else episodes
     }
+
+    val isWideScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
+    if (isWideScreen) {
+        WideMediaDetailOverlay(
+            movie = movie,
+            series = series,
+            episodes = filteredEpisodes,
+            availableSeasons = availableSeasons,
+            selectedSeason = selectedSeason,
+            onSeasonSelect = { selectedSeason = it },
+            onDismiss = onDismiss,
+            onPlayMovie = onPlayMovie,
+            onPlayEpisode = onPlayEpisode,
+            onToggleFavoriteMovie = onToggleFavoriteMovie,
+            onToggleFavoriteSeries = onToggleFavoriteSeries
+        )
+        return
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF141414),
@@ -317,6 +337,262 @@ fun MediaDetailSheet(
                                         color = Color.Gray,
                                         fontSize = 11.sp
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WideMediaDetailOverlay(
+    movie: MovieEntity?,
+    series: SeriesEntity?,
+    episodes: List<Episode>,
+    availableSeasons: List<Int>,
+    selectedSeason: Int,
+    onSeasonSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    onPlayMovie: (MovieEntity) -> Unit,
+    onPlayEpisode: (Episode) -> Unit,
+    onToggleFavoriteMovie: (MovieEntity) -> Unit,
+    onToggleFavoriteSeries: (SeriesEntity) -> Unit
+) {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF141414))
+        ) {
+            val backdropUrl = movie?.backdropUrl?.ifEmpty { movie.posterUrl }
+                ?: series?.backdropUrl?.ifEmpty { series.posterUrl } ?: ""
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(backdropUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                alpha = 0.35f
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF141414).copy(alpha = 0.95f), Color.Transparent)
+                        )
+                    )
+            )
+
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(24.dp)
+                    .background(Color.Black.copy(0.6f), RoundedCornerShape(20.dp))
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.White)
+            }
+
+            Row(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(start = 56.dp, end = 32.dp, top = 64.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(color = NetflixRed, shape = RoundedCornerShape(4.dp)) {
+                            Text(
+                                text = if (movie != null) "فيلم" else "مسلسل",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "★ ${movie?.rating ?: series?.rating ?: "8.5"}",
+                            color = RatingGold,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = movie?.releaseYear ?: series?.releaseYear ?: "",
+                            color = Color.LightGray,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = movie?.title ?: series?.title ?: "",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
+                    )
+
+                    val plotText = movie?.plot ?: series?.plot ?: ""
+                    if (plotText.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = plotText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.LightGray,
+                            maxLines = 6
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    if (movie != null) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Button(
+                                onClick = { onPlayMovie(movie) },
+                                colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.height(52.dp)
+                            ) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("تشغيل", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { onToggleFavoriteMovie(movie) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                modifier = Modifier.height(52.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (movie.isFavorite) Icons.Default.Check else Icons.Default.Add,
+                                    contentDescription = null
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("المفضلة")
+                            }
+                        }
+                    } else if (series != null) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            val firstEp = episodes.firstOrNull()
+                            Button(
+                                onClick = { firstEp?.let { onPlayEpisode(it) } },
+                                colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.height(52.dp)
+                            ) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("تشغيل", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
+                            OutlinedButton(
+                                onClick = { onToggleFavoriteSeries(series) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                modifier = Modifier.height(52.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (series.isFavorite) Icons.Default.Check else Icons.Default.Add,
+                                    contentDescription = null
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("المفضلة")
+                            }
+                        }
+                    }
+                }
+
+                if (series != null && episodes.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(end = 56.dp, top = 64.dp, bottom = 32.dp)
+                    ) {
+                        Text(
+                            text = "الحلقات",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+
+                        if (availableSeasons.size > 1) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            ) {
+                                items(availableSeasons) { season ->
+                                    val isSelected = season == selectedSeason
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = { onSeasonSelect(season) },
+                                        label = { Text("الموسم $season") },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = NetflixRed,
+                                            selectedLabelColor = Color.White
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(episodes, key = { it.id }) { episode ->
+                                Card(
+                                    onClick = { onPlayEpisode(episode) },
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1F1F1F).copy(alpha = 0.85f)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(14.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "S${episode.seasonNum}·E${episode.episodeNum}",
+                                            color = Color.LightGray,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.width(64.dp)
+                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = episode.title,
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            if (episode.duration.isNotBlank()) {
+                                                Text(
+                                                    text = episode.duration,
+                                                    color = Color.Gray,
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "تشغيل",
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }

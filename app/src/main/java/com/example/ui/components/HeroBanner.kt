@@ -56,11 +56,14 @@ fun AutoCyclingHeroBanner(
 
     val featuredMovie = featuredList.getOrNull(currentIndex) ?: featuredList.first()
 
+    val isWideScreen = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
+    val bannerHeight = if (isWideScreen) 480.dp else 360.dp
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(360.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(bannerHeight)
+            .padding(horizontal = if (isWideScreen) 32.dp else 16.dp, vertical = if (isWideScreen) 16.dp else 8.dp)
             .clickable { onDetailClick(featuredMovie) },
         shape = RoundedCornerShape(24.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
@@ -207,7 +210,7 @@ fun AutoCyclingHeroBanner(
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
-                            .weight(1f)
+                            .then(if (isWideScreen) Modifier.width(220.dp) else Modifier.weight(1f))
                             .height(44.dp)
                     ) {
                         Icon(
