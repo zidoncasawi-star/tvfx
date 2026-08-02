@@ -15,8 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.model.MovieEntity
-import com.example.ui.components.CategoryFilterChips
+import com.example.ui.components.DropdownFilterBar
 import com.example.ui.components.MovieCard
+import com.example.ui.components.SortOption
 import com.example.ui.theme.NetflixRed
 
 @Composable
@@ -31,6 +32,7 @@ fun MoviesScreen(
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var sortOption by remember { mutableStateOf(SortOption.DEFAULT) }
 
     val categories = remember(movies, xtreamCategories) {
         val list = mutableListOf("الكل")
@@ -66,10 +68,16 @@ fun MoviesScreen(
         xtreamCategories.firstOrNull { cat -> movies.none { it.category == cat.id } }
     }
 
-    val filteredMovies = remember(movies, selectedCategory, searchQuery) {
-        movies.filter {
+    val filteredMovies = remember(movies, selectedCategory, searchQuery, sortOption) {
+        val filtered = movies.filter {
             (selectedCategory == "الكل" || it.category == selectedCategory) &&
                     (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
+        }
+        when (sortOption) {
+            SortOption.DEFAULT -> filtered
+            SortOption.RATING -> filtered.sortedByDescending { it.rating.toDoubleOrNull() ?: 0.0 }
+            SortOption.YEAR -> filtered.sortedByDescending { it.releaseYear.toIntOrNull() ?: 0 }
+            SortOption.NAME -> filtered.sortedBy { it.title }
         }
     }
 
@@ -99,15 +107,17 @@ fun MoviesScreen(
             )
         )
 
-        CategoryFilterChips(
+        DropdownFilterBar(
             categories = categories,
             selectedCategory = selectedCategory,
+            categoryNames = categoryNames,
             onCategorySelect = onCategorySelect,
-            categoryNames = categoryNames
+            sortOption = sortOption,
+            onSortSelect = { sortOption = it }
         )
 
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 120.dp),
+            columns = GridCells.Adaptive(minSize = 140.dp),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
