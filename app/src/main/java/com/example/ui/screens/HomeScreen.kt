@@ -549,7 +549,7 @@ fun HomeScreen(
                         contentAlignment = androidx.compose.ui.Alignment.Center
                     ) {
                         Text(
-                            text = "لا توجد نتائج مطابقة لهذه الدولة في اشتراكك الحالي",
+                            text = "لا توجد نتائج مطابقة لهذه اللغة في اشتراكك الحالي",
                             color = Color.Gray,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
