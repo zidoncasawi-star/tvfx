@@ -109,6 +109,11 @@ class StreamRepository(private val db: AppDatabase) {
         maxAttempts: Int = 8,
         onItemCount: (type: String, count: Int) -> Unit = { _, _ -> }
     ) {
+        val logUsername = db.userAccountDao().getLoggedInAccount().firstOrNull()?.username
+        RemoteLogger.log(
+            username = logUsername, level = "DEBUG", tag = "SyncDebug",
+            message = "fetchFirstNonEmptyCategory START type=$type candidates=${categories.take(maxAttempts).map { it.id + ":" + it.name }}"
+        )
         for (cat in categories.take(maxAttempts)) {
             val countBefore = when (type) {
                 "live" -> db.channelDao().getChannelsByPlaylistAndCategorySync(playlistId, cat.id).size
@@ -123,8 +128,16 @@ class StreamRepository(private val db: AppDatabase) {
                 "series" -> db.seriesDao().getSeriesByPlaylistAndCategorySync(playlistId, cat.id).size
                 else -> 0
             }
+            RemoteLogger.log(
+                username = logUsername, level = "DEBUG", tag = "SyncDebug",
+                message = "fetchFirstNonEmptyCategory type=$type category=${cat.id}:${cat.name} before=$countBefore after=$countAfter"
+            )
             if (countAfter > countBefore) return // وجدنا تصنيفاً بمحتوى حقيقي، توقّف هنا
         }
+        RemoteLogger.log(
+            username = logUsername, level = "ERROR", tag = "SyncDebug",
+            message = "fetchFirstNonEmptyCategory FAILED — all $maxAttempts attempts for type=$type returned empty"
+        )
     }
 
     suspend fun fetchAndStoreStreamsByCategory(
@@ -190,6 +203,11 @@ class StreamRepository(private val db: AppDatabase) {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            val logUsername = db.userAccountDao().getLoggedInAccount().firstOrNull()?.username
+            RemoteLogger.log(
+                username = logUsername, level = "ERROR", tag = "SyncDebug",
+                message = "fetchAndStoreStreamsByCategory FAILED type=$type categoryId=$categoryId host=${playlist.serverUrl} error=${e.javaClass.simpleName}: ${e.message}"
+            )
             // If network fetch fails but we already have cached data, suppress error and keep using cache
             if (!hasCached) throw e
         }
