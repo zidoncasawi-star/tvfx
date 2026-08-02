@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.AppDatabase
+import com.example.data.RemoteLogger
 import com.example.data.StreamRepository
 import com.example.model.*
 import kotlinx.coroutines.flow.*
@@ -538,6 +539,47 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if (currentPlaylists.isEmpty()) {
                         _selectedTab.value = MainTab.USER_ACCOUNT
                     }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // تحقق تلقائي عند فتح التطبيق: هل غيّر الأدمن حساب Xtream المخصَّص لهذا المستخدم؟
+        // إن تغيّر (host/username/password مختلف عمّا هو محفوظ محلياً)، يُعاد الاستيراد تلقائياً
+        // بالحساب الجديد دون أي تدخل من المستخدم.
+        viewModelScope.launch {
+            try {
+                val account = repository.loggedInAccount.first() ?: return@launch
+                if (!account.isActivated) return@launch
+
+                val check = com.example.data.AdminPanelClient.checkSubscriptionStatus(
+                    adminUrl = account.adminServerUrl,
+                    username = account.username,
+                    activationCode = account.activationCode
+                )
+
+                val newHost = check.xtreamHost
+                val newUser = check.xtreamUsername
+                val newPass = check.xtreamPassword
+
+                val xtreamChanged = check.isActivated &&
+                    !newHost.isNullOrBlank() &&
+                    (newHost != account.xtreamHost || newUser != account.xtreamUsername || newPass != account.xtreamPassword)
+
+                if (xtreamChanged) {
+                    RemoteLogger.log(
+                        username = account.username, level = "DEBUG", tag = "SyncDebug",
+                        message = "Detected Xtream account change on app open: old host=${account.xtreamHost} -> new host=$newHost. Re-importing automatically."
+                    )
+                    val updated = account.copy(
+                        xtreamHost = newHost,
+                        xtreamUsername = newUser ?: account.xtreamUsername,
+                        xtreamPassword = newPass ?: account.xtreamPassword,
+                        isActivated = true
+                    )
+                    repository.updateAccount(updated)
+                    performAdminImport(updated)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
