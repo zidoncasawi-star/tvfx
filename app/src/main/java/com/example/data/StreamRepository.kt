@@ -267,18 +267,33 @@ class StreamRepository(private val db: AppDatabase) {
             }
 
             // Fetch from network
+            val logUsername = db.userAccountDao().getLoggedInAccount().firstOrNull()?.username
+            RemoteLogger.log(
+                username = logUsername, level = "DEBUG", tag = "SyncDebug",
+                message = "syncPlaylistContent START host=${playlist.serverUrl} user=${playlist.username} playlistId=${playlist.id}"
+            )
             try {
                 onStatusUpdate("جاري تحميل تصنيفات المسلسلات...")
                 val seriesCats = XtreamCodesClient.fetchCategories(playlist, "series")
+                RemoteLogger.log(username = logUsername, level = "DEBUG", tag = "SyncDebug", message = "fetchCategories series -> count=${seriesCats.size}")
                 onProgress(20)
 
                 onStatusUpdate("جاري تحميل تصنيفات الأفلام...")
                 val vodCats = XtreamCodesClient.fetchCategories(playlist, "vod")
+                RemoteLogger.log(username = logUsername, level = "DEBUG", tag = "SyncDebug", message = "fetchCategories vod -> count=${vodCats.size}")
                 onProgress(35)
 
                 onStatusUpdate("جاري تحميل تصنيفات القنوات...")
                 val liveCats = XtreamCodesClient.fetchCategories(playlist, "live")
+                RemoteLogger.log(username = logUsername, level = "DEBUG", tag = "SyncDebug", message = "fetchCategories live -> count=${liveCats.size}")
                 onProgress(50)
+
+                if (seriesCats.isEmpty() && vodCats.isEmpty() && liveCats.isEmpty()) {
+                    RemoteLogger.log(
+                        username = logUsername, level = "ERROR", tag = "SyncDebug",
+                        message = "ALL category lists came back EMPTY for host=${playlist.serverUrl} — likely a silently-swallowed network error in fetchCategories()"
+                    )
+                }
 
                 db.xtreamCategoryDao().deleteByPlaylist(playlist.id)
                 db.xtreamCategoryDao().insertCategories(seriesCats + vodCats + liveCats)
@@ -314,6 +329,10 @@ class StreamRepository(private val db: AppDatabase) {
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                RemoteLogger.log(
+                    username = logUsername, level = "ERROR", tag = "SyncDebug",
+                    message = "syncPlaylistContent EXCEPTION host=${playlist.serverUrl} error=${e.javaClass.simpleName}: ${e.message}"
+                )
                 // Force throw to ensure the UI knows sync failed
                 throw e
             }

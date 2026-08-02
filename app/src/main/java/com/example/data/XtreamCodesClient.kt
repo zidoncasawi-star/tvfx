@@ -195,9 +195,18 @@ object XtreamCodesClient {
                         )
                     }
                 }
+            } else {
+                RemoteLogger.log(
+                    level = "ERROR", tag = "SyncDebug",
+                    message = "fetchCategories($type) got non-array response, len=${jsonStr?.length ?: -1}, prefix=${jsonStr?.take(120)}"
+                )
             }
         } catch (e: Throwable) {
             e.printStackTrace()
+            RemoteLogger.log(
+                level = "ERROR", tag = "SyncDebug",
+                message = "fetchCategories($type) EXCEPTION host=$serverUrl error=${e.javaClass.simpleName}: ${e.message}"
+            )
         }
         categories
     }
