@@ -15,7 +15,8 @@ data class SubscriptionCheckResult(
     val expiresAt: Long? = null,
     val xtreamHost: String? = null,
     val xtreamUsername: String? = null,
-    val xtreamPassword: String? = null
+    val xtreamPassword: String? = null,
+    val activeDeviceType: String? = null
 )
 
 object AdminPanelClient {
@@ -72,7 +73,8 @@ object AdminPanelClient {
                             expiresAt = expiresAt,
                             xtreamHost = xHost.ifBlank { null },
                             xtreamUsername = xUser.ifBlank { null },
-                            xtreamPassword = xPass.ifBlank { null }
+                            xtreamPassword = xPass.ifBlank { null },
+                            activeDeviceType = json.optString("activeDeviceType", "").ifBlank { null }
                         )
                     }
                 }
@@ -191,6 +193,69 @@ object AdminPanelClient {
         } catch (e: Throwable) {
             e.printStackTrace()
             return@withContext null
+        }
+    }
+
+    /**
+     * يوافق على طلب ربط جهاز سطح مكتب مُدخَل من الهاتف (رمز 6 أرقام يظهر على شاشة الحاسوب)،
+     * ويجعل سطح المكتب هو الجهاز النشط فوراً (يقفل الهاتف تلقائياً على غرار web.whatsapp.com).
+     */
+    suspend fun approveDesktopPairing(
+        adminUrl: String,
+        code: String,
+        username: String,
+        activationCode: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/pair_approve.php"
+            val bodyJson = JSONObject().apply {
+                put("code", code)
+                put("username", username)
+                put("activationCode", activationCode)
+            }
+            val body = bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE)
+            val request = Request.Builder().url(url).post(body).build()
+
+            client.newCall(request).execute().use { response ->
+                val respBody = response.body?.string() ?: return@withContext false
+                return@withContext JSONObject(respBody).optBoolean("success", false)
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            return@withContext false
+        }
+    }
+
+    /** يجعل هذا الجهاز (الهاتف) هو الجهاز النشط — يُستدعى بعد أي تسجيل دخول عادي (بدون ربط QR) */
+    suspend fun setActiveDevice(adminUrl: String, username: String, activationCode: String) = withContext(Dispatchers.IO) {
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/set_active_device.php"
+            val bodyJson = JSONObject().apply {
+                put("username", username)
+                put("activationCode", activationCode)
+                put("deviceType", "phone")
+            }
+            val body = bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE)
+            val request = Request.Builder().url(url).post(body).build()
+            client.newCall(request).execute().close()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    /** يُطلق قفل الجهاز عند تسجيل الخروج الصريح، فيسمح للجهاز الآخر بالعمل من جديد */
+    suspend fun clearActiveDevice(adminUrl: String, username: String, activationCode: String) = withContext(Dispatchers.IO) {
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/clear_active_device.php"
+            val bodyJson = JSONObject().apply {
+                put("username", username)
+                put("activationCode", activationCode)
+            }
+            val body = bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE)
+            val request = Request.Builder().url(url).post(body).build()
+            client.newCall(request).execute().close()
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 

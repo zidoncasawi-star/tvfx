@@ -59,6 +59,52 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _autoRefreshEpg = MutableStateFlow(prefs.getBoolean("key_auto_refresh_epg", true))
     val autoRefreshEpg: StateFlow<Boolean> = _autoRefreshEpg.asStateFlow()
 
+    // قفل الجهاز الواحد (على غرار web.whatsapp.com): يصبح true إن كان سطح المكتب هو الجهاز النشط حالياً
+    private val _lockedByOtherDevice = MutableStateFlow(false)
+    val lockedByOtherDevice: StateFlow<Boolean> = _lockedByOtherDevice.asStateFlow()
+
+    private val _linkDesktopError = MutableStateFlow<String?>(null)
+    val linkDesktopError: StateFlow<String?> = _linkDesktopError.asStateFlow()
+
+    /** يُدخِله المستخدم الكود الظاهر على شاشة الحاسوب لربطه بحسابه — يجعل الحاسوب هو الجهاز النشط فوراً */
+    fun linkDesktop(code: String) {
+        val account = loggedInAccount.value ?: return
+        viewModelScope.launch {
+            _linkDesktopError.value = null
+            val success = com.example.data.AdminPanelClient.approveDesktopPairing(
+                adminUrl = account.adminServerUrl,
+                code = code,
+                username = account.username,
+                activationCode = account.activationCode
+            )
+            if (success) {
+                _lockedByOtherDevice.value = true
+                _userMessage.value = "تم ربط الحاسوب بنجاح ✅"
+            } else {
+                _linkDesktopError.value = "الكود غير صحيح أو منتهي الصلاحية"
+            }
+        }
+    }
+
+    private suspend fun checkDeviceLock(account: UserAccountEntity): Boolean {
+        return try {
+            val check = com.example.data.AdminPanelClient.checkSubscriptionStatus(
+                adminUrl = account.adminServerUrl,
+                username = account.username,
+                activationCode = account.activationCode
+            )
+            val locked = check.activeDeviceType != null && check.activeDeviceType != "phone"
+            _lockedByOtherDevice.value = locked
+            if (!locked) {
+                // نُثبّت هذا الهاتف كجهاز نشط (بدون انتظار) حتى نمنع الحاسوب من العمل بالمقابل
+                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            }
+            locked
+        } catch (e: Exception) {
+            false // لا إنترنت: لا نمنع المستخدم من استخدام آخر جلسة محفوظة محلياً
+        }
+    }
+
     fun setAppLanguage(lang: String) {
         _appLanguage.value = lang
         prefs.edit().putString("key_app_lang", lang).apply()
@@ -310,6 +356,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "isActivated=${check.isActivated} message=${check.message} xtreamHost=${check.xtreamHost} expiresAt=${check.expiresAt}"
             )
 
+            val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != "phone"
+            _lockedByOtherDevice.value = lockedByDesktop
+            if (lockedByDesktop) {
+                _isSyncing.value = false
+                return
+            }
+            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+
             val updated = account.copy(
                 isActivated = check.isActivated,
                 xtreamHost = check.xtreamHost ?: account.xtreamHost,
@@ -369,6 +423,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     username = account.username,
                     activationCode = account.activationCode
                 )
+
+                val lockedByDesktop = result.activeDeviceType != null && result.activeDeviceType != "phone"
+                _lockedByOtherDevice.value = lockedByDesktop
+                if (lockedByDesktop) {
+                    _isSyncing.value = false
+                    return@launch
+                }
+                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+
                 val updated = account.copy(
                     isActivated = result.isActivated,
                     xtreamHost = result.xtreamHost ?: account.xtreamHost,
@@ -430,8 +493,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logoutUser() {
+        val account = loggedInAccount.value
         viewModelScope.launch {
+            if (account != null) {
+                // يُطلق قفل الجهاز عند الخروج الصريح، فيسمح لسطح المكتب بالعمل من جديد
+                com.example.data.AdminPanelClient.clearActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            }
             repository.logoutUserAccount()
+            _lockedByOtherDevice.value = false
             _userMessage.value = "تم تسجيل الخروج بنجاح"
         }
     }
@@ -578,6 +647,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     activationCode = account.activationCode
                 )
 
+                val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != "phone"
+                _lockedByOtherDevice.value = lockedByDesktop
+                if (lockedByDesktop) return@launch
+                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+
                 val newHost = check.xtreamHost
                 val newUser = check.xtreamUsername
                 val newPass = check.xtreamPassword
@@ -602,6 +676,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+
+        // فحص دوري لقفل الجهاز الواحد (كل 60 ثانية طالما المستخدم مسجَّل دخوله): إن أصبح سطح المكتب
+        // هو الجهاز النشط أثناء استخدام الهاتف، يظهر قفل فوري يطلب تسجيل الخروج من الحاسوب
+        viewModelScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(60_000)
+                try {
+                    val account = repository.loggedInAccount.first() ?: continue
+                    if (!account.isActivated) continue
+                    checkDeviceLock(account)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 

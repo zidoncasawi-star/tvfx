@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
 
                 val loggedInAccount by viewModel.loggedInAccount.collectAsStateWithLifecycle()
                 val authError by viewModel.authError.collectAsStateWithLifecycle()
+                val linkDesktopError by viewModel.linkDesktopError.collectAsStateWithLifecycle()
                 val customFolders by viewModel.customFolders.collectAsStateWithLifecycle()
 
                 val profiles by viewModel.profiles.collectAsStateWithLifecycle()
@@ -138,6 +139,15 @@ class MainActivity : ComponentActivity() {
 
                 if (showSplash) {
                     SplashScreen(onFinish = { viewModel.finishSplash() })
+                    return@FlixTvTheme
+                }
+
+                val lockedByOtherDevice by viewModel.lockedByOtherDevice.collectAsStateWithLifecycle()
+                if (lockedByOtherDevice) {
+                    com.example.ui.screens.DeviceLockScreen(
+                        onRetry = { viewModel.checkSubscription() },
+                        onLogout = { viewModel.logoutUser() }
+                    )
                     return@FlixTvTheme
                 }
 
@@ -464,7 +474,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onImportAdminXtream = {
                                     viewModel.importAdminXtreamSubscription()
-                                }
+                                },
+                                    onLinkDesktop = { code -> viewModel.linkDesktop(code) },
+                                    linkDesktopError = linkDesktopError
                             )
                         }
                     }

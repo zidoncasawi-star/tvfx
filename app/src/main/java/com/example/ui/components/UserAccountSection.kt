@@ -43,8 +43,62 @@ fun UserAccountSection(
     onCheckActivation: () -> Unit = {},
     onUpdateAdminUrl: (String) -> Unit = {},
     onImportAdminXtream: () -> Unit = {},
+    onLinkDesktop: (String) -> Unit = {},
+    linkDesktopError: String? = null,
     modifier: Modifier = Modifier
 ) {
+    var showLinkDesktopDialog by remember { mutableStateOf(false) }
+    var linkDesktopCode by remember { mutableStateOf("") }
+
+    if (showLinkDesktopDialog) {
+        AlertDialog(
+            onDismissRequest = { showLinkDesktopDialog = false },
+            containerColor = DarkCardBg,
+            title = { Text("ربط تطبيق سطح المكتب", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text(
+                        text = "افتح FLIXTV على الحاسوب → اضغط \"Sign in with Phone\" → أدخل الكود الظاهر هناك:",
+                        color = Color.LightGray,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = linkDesktopCode,
+                        onValueChange = { linkDesktopCode = it.filter { c -> c.isDigit() }.take(6) },
+                        label = { Text("الكود المكوّن من 6 أرقام") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = NetflixRed,
+                            focusedLabelColor = NetflixRed,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.2f)
+                        )
+                    )
+                    if (linkDesktopError != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(linkDesktopError, color = NetflixRed, fontSize = 12.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (linkDesktopCode.length == 6) {
+                            onLinkDesktop(linkDesktopCode)
+                            showLinkDesktopDialog = false
+                            linkDesktopCode = ""
+                        }
+                    }
+                ) { Text("ربط", color = NetflixRed, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLinkDesktopDialog = false }) { Text("إلغاء", color = Color.Gray) }
+            }
+        )
+    }
     var authModeTab by remember { mutableIntStateOf(0) } // 0 = Login, 1 = Register
     var adminUrlInput by remember(userAccount) { mutableStateOf(userAccount?.adminServerUrl ?: "") }
 
@@ -474,6 +528,20 @@ fun UserAccountSection(
                             color = Color.White,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
+
+                        OutlinedButton(
+                            onClick = { showLinkDesktopDialog = true },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Laptop, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("ربط تطبيق سطح المكتب 🖥️", fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
 
                         OutlinedButton(
                             onClick = onLogout,
