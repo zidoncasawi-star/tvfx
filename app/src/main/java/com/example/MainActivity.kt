@@ -489,7 +489,8 @@ class MainActivity : ComponentActivity() {
                                     onPlayChannel = { viewModel.playMedia(it) },
                                     onToggleFavorite = { viewModel.toggleChannelFavorite(it) },
                                     onLoadCategoryStreams = { viewModel.loadStreamsByCategory(it, "live") },
-                                    onExit = { viewModel.setTab(MainTab.HOME) }
+                                    onExit = { viewModel.setTab(MainTab.HOME) },
+                                    isFullPlayerActive = currentlyPlaying != null
                                 )
 
                                 MainTab.MOVIES -> MoviesScreen(

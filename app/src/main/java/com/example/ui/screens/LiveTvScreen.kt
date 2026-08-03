@@ -49,6 +49,7 @@ fun LiveTvScreen(
     onToggleFavorite: (ChannelEntity) -> Unit,
     onLoadCategoryStreams: (String) -> Unit,
     onExit: () -> Unit,
+    isFullPlayerActive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
@@ -359,6 +360,7 @@ fun LiveTvScreen(
                     ) {
                         com.example.ui.components.InlinePlayer(
                             mediaUrl = previewChannel!!.streamUrl,
+                            isPaused = isFullPlayerActive,
                             modifier = Modifier.fillMaxSize()
                         )
                         // Intercept clicks to go fullscreen

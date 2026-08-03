@@ -11,6 +11,7 @@ import androidx.media3.ui.PlayerView
 @Composable
 fun InlinePlayer(
     mediaUrl: String,
+    isPaused: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -25,6 +26,16 @@ fun InlinePlayer(
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.play()
+    }
+
+    // يوقف صوت وتشغيل هذه المعاينة المصغّرة فور فتح المشغّل الرئيسي بملء الشاشة — بدون هذا يبقى
+    // صوتا القناة يعملان في آن واحد (المعاينة المصغّرة + المشغّل الرئيسي) فيتداخل الصوت ويصبح مشوَّشاً
+    LaunchedEffect(isPaused) {
+        if (isPaused) {
+            exoPlayer.pause()
+        } else {
+            exoPlayer.play()
+        }
     }
 
     DisposableEffect(Unit) {
