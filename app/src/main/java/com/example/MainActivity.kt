@@ -690,14 +690,17 @@ class MainActivity : ComponentActivity() {
                                 shadowElevation = 6.dp,
                                 modifier = Modifier
                                     .align(androidx.compose.ui.Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp)
                                     .navigationBarsPadding()
-                                    .padding(bottom = 4.dp)
                                     .zIndex(2f)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp, vertical = 6.dp),
                                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                    horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
                                     floatingNavItems.forEach { (tab, info) ->
                                         val isSelected = selectedTab == tab
