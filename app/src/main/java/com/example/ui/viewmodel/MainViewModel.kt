@@ -304,7 +304,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 username = account.username,
                 activationCode = account.activationCode
             )
-            
+            RemoteLogger.log(
+                username = account.username, level = "DEBUG", tag = "LoginDebug",
+                message = "completeLoginFlow status check username=${account.username} code=${account.activationCode} adminUrl=${account.adminServerUrl} " +
+                    "isActivated=${check.isActivated} message=${check.message} xtreamHost=${check.xtreamHost} expiresAt=${check.expiresAt}"
+            )
+
             val updated = account.copy(
                 isActivated = check.isActivated,
                 xtreamHost = check.xtreamHost ?: account.xtreamHost,
