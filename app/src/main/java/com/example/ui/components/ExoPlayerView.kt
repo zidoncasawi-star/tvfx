@@ -34,8 +34,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -59,6 +62,13 @@ enum class ResizeMode(val mode: Int, val labelAr: String) {
     FILL(AspectRatioFrameLayout.RESIZE_MODE_FILL, "تعبئة الشاشة"),
     ZOOM(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, "تكبير")
 }
+
+data class AudioTrackOption(
+    val trackGroup: androidx.media3.common.TrackGroup,
+    val trackIndex: Int,
+    val label: String,
+    val isSelected: Boolean
+)
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -97,6 +107,10 @@ fun ExoPlayerView(
     var showCastRemoteControl by remember { mutableStateOf(false) }
     var castVolume by remember { mutableFloatStateOf(0.8f) }
     var isCastMuted by remember { mutableStateOf(false) }
+
+    // Audio Track Selection State (مثل ميزة "Audio Track" في XCIPTV)
+    var availableAudioTracks by remember { mutableStateOf<List<AudioTrackOption>>(emptyList()) }
+    var showAudioTrackDialog by remember { mutableStateOf(false) }
 
     // EPG Dialog State
     var showEpgDialog by remember { mutableStateOf(false) }
@@ -231,6 +245,37 @@ fun ExoPlayerView(
                     reconnectAttempt = 0
                 }
             }
+
+            // مسارات الصوت المتاحة فعلياً في هذا البث (مثل ميزة "Audio Track" في XCIPTV) —
+            // بعض ملفات MKV/HLS تحتوي أكثر من مسار صوت (لغات/دوبلاج مختلفة)
+            override fun onTracksChanged(tracks: Tracks) {
+                val options = mutableListOf<AudioTrackOption>()
+                tracks.groups.forEach { group ->
+                    if (group.type == C.TRACK_TYPE_AUDIO) {
+                        for (trackIndex in 0 until group.length) {
+                            if (!group.isTrackSupported(trackIndex)) continue
+                            val format = group.getTrackFormat(trackIndex)
+                            val language = format.language
+                            val displayName = when {
+                                !format.label.isNullOrBlank() -> format.label!!
+                                !language.isNullOrBlank() -> runCatching {
+                                    java.util.Locale(language).displayLanguage
+                                }.getOrNull()?.takeIf { it.isNotBlank() } ?: language
+                                else -> "مسار صوت ${options.size + 1}"
+                            }
+                            options.add(
+                                AudioTrackOption(
+                                    trackGroup = group.mediaTrackGroup,
+                                    trackIndex = trackIndex,
+                                    label = displayName,
+                                    isSelected = group.isTrackSelected(trackIndex)
+                                )
+                            )
+                        }
+                    }
+                }
+                availableAudioTracks = options
+            }
         }
 
         exoPlayer.addListener(listener)
@@ -238,6 +283,14 @@ fun ExoPlayerView(
         onDispose {
             exoPlayer.removeListener(listener)
         }
+    }
+
+    fun selectAudioTrack(option: AudioTrackOption) {
+        exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters
+            .buildUpon()
+            .setOverrideForType(TrackSelectionOverride(option.trackGroup, option.trackIndex))
+            .build()
+        showAudioTrackDialog = false
     }
 
     // Position progress polling
@@ -510,6 +563,22 @@ fun ExoPlayerView(
                                 Icon(
                                     imageVector = Icons.Default.Schedule,
                                     contentDescription = "دليل البرامج",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+
+                        // Audio Track Selector — يظهر فقط إن كان البث يحتوي أكثر من مسار صوت واحد فعلياً
+                        if (availableAudioTracks.size > 1) {
+                            IconButton(
+                                onClick = { showAudioTrackDialog = true },
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.5f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Audiotrack,
+                                    contentDescription = "مسار الصوت",
                                     tint = Color.White
                                 )
                             }
@@ -934,6 +1003,59 @@ fun ExoPlayerView(
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { showSpeedDialog = false }) {
+                        Text("إلغاء", color = Color.Gray)
+                    }
+                }
+            )
+        }
+
+        // Audio Track Selection Dialog (مثل ميزة "Audio Track" في XCIPTV)
+        if (showAudioTrackDialog) {
+            AlertDialog(
+                onDismissRequest = { showAudioTrackDialog = false },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+                modifier = Modifier.fillMaxWidth(0.95f),
+                containerColor = Color(0xFF1E1E24),
+                titleContentColor = Color.White,
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Audiotrack, contentDescription = null, tint = NetflixRed)
+                        Text("مسار الصوت (Audio Track)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        availableAudioTracks.forEach { option ->
+                            Card(
+                                onClick = { selectAudioTrack(option) },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (option.isSelected) NetflixRed.copy(alpha = 0.2f) else Color(0xFF282830)
+                                ),
+                                border = if (option.isSelected) androidx.compose.foundation.BorderStroke(1.dp, NetflixRed) else null,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(option.label, color = Color.White, fontWeight = FontWeight.Medium)
+                                    if (option.isSelected) {
+                                        Icon(Icons.Default.Check, contentDescription = null, tint = NetflixRed)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showAudioTrackDialog = false }) {
                         Text("إلغاء", color = Color.Gray)
                     }
                 }
