@@ -621,6 +621,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _searchQuery.value = query
     }
 
+    // دليل البرامج الحقيقي (EPG) لقناة معيّنة — يُستخرج رقم البث من رابط القناة نفسه
+    // (نهاية الرابط: .../live/user/pass/{streamId}.m3u8)
+    suspend fun fetchShortEpgForChannel(channel: ChannelEntity): List<com.example.data.ShortEpgEntry> {
+        val playlist = activePlaylist.value ?: return emptyList()
+        val streamId = channel.streamUrl.substringAfterLast('/').substringBefore('.')
+        if (streamId.isBlank()) return emptyList()
+        return com.example.data.XtreamCodesClient.fetchShortEpg(playlist, streamId)
+    }
+
     fun playMedia(media: PlayingMedia) {
         _currentlyPlaying.value = media
         _mediaDetail.value = null // Close detail sheet if open

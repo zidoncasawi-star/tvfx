@@ -490,7 +490,8 @@ class MainActivity : ComponentActivity() {
                                     onToggleFavorite = { viewModel.toggleChannelFavorite(it) },
                                     onLoadCategoryStreams = { viewModel.loadStreamsByCategory(it, "live") },
                                     onExit = { viewModel.setTab(MainTab.HOME) },
-                                    isFullPlayerActive = currentlyPlaying != null
+                                    isFullPlayerActive = currentlyPlaying != null,
+                                    onFetchEpg = { channel -> viewModel.fetchShortEpgForChannel(channel) }
                                 )
 
                                 MainTab.MOVIES -> MoviesScreen(

@@ -50,6 +50,7 @@ fun LiveTvScreen(
     onLoadCategoryStreams: (String) -> Unit,
     onExit: () -> Unit,
     isFullPlayerActive: Boolean = false,
+    onFetchEpg: suspend (ChannelEntity) -> List<com.example.data.ShortEpgEntry> = { emptyList() },
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
@@ -78,6 +79,12 @@ fun LiveTvScreen(
     var searchCategoryQuery by remember { mutableStateOf("") }
     var searchChannelQuery by remember { mutableStateOf("") }
     var previewChannel by remember { mutableStateOf<ChannelEntity?>(null) }
+    var currentEpg by remember { mutableStateOf<List<com.example.data.ShortEpgEntry>>(emptyList()) }
+
+    // دليل البرامج الحقيقي لقناة المعاينة — يُجلب من سيرفر Xtream فعلياً في كل مرة تتغيّر القناة المعاينة
+    LaunchedEffect(previewChannel?.id) {
+        currentEpg = previewChannel?.let { onFetchEpg(it) } ?: emptyList()
+    }
 
     val categories = remember(channels, xtreamCategories) {
         val list = mutableListOf("الكل")
@@ -400,10 +407,40 @@ fun LiveTvScreen(
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
-                        val epgNow = previewChannel!!.epgNow
-                        if (epgNow.isNotBlank()) {
-                            Text(text = "NOW PLAYING", color = NetflixRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Text(text = epgNow, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
+                        val nowProgram = currentEpg.firstOrNull { it.isNowPlaying } ?: currentEpg.firstOrNull()
+                        val nextProgram = currentEpg.firstOrNull { it != nowProgram }
+                        if (nowProgram != null) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = "الآن", color = NetflixRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                if (nowProgram.start.isNotBlank() && nowProgram.end.isNotBlank()) {
+                                    Text(
+                                        text = "  •  ${nowProgram.start} - ${nowProgram.end}",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                            Text(
+                                text = nowProgram.title,
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                            if (nowProgram.description.isNotBlank()) {
+                                Text(
+                                    text = nowProgram.description,
+                                    color = Color.LightGray,
+                                    fontSize = 12.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                            if (nextProgram != null) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(text = "التالي: ${nextProgram.title}", color = Color.Gray, fontSize = 12.sp)
+                            }
                         } else {
                             Text(text = "NO EPG FOUND", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }

@@ -409,4 +409,74 @@ object XtreamCodesClient {
         }
         episodes
     }
+
+    // دليل البرامج الحقيقي (EPG) للقناة — يجلب البرنامج الحالي والقادم فعلياً من سيرفر Xtream
+    // بدل الاعتماد على أي بيانات وهمية أو نص القناة نفسه
+    suspend fun fetchShortEpg(playlist: PlaylistEntity, streamId: String, limit: Int = 4): List<ShortEpgEntry> = withContext(Dispatchers.IO) {
+        val serverUrl = playlist.serverUrl.trimEnd('/')
+        val username = playlist.username
+        val password = com.example.util.SecurityUtils.decrypt(playlist.password)
+        val url = "$serverUrl/player_api.php?username=$username&password=$password&action=get_short_epg&stream_id=$streamId&limit=$limit"
+
+        val result = mutableListOf<ShortEpgEntry>()
+        try {
+            val jsonStr = executeGet(url)
+            if (jsonStr != null && jsonStr.trim().startsWith("{")) {
+                val jsonObj = JSONObject(jsonStr)
+                val listings = jsonObj.optJSONArray("epg_listings")
+                if (listings != null) {
+                    for (i in 0 until listings.length()) {
+                        val item = listings.getJSONObject(i)
+                        val title = decodeEpgText(item.optString("title", ""))
+                        val description = decodeEpgText(item.optString("description", ""))
+                        val start = formatEpgTime(item.optString("start", ""))
+                        val end = formatEpgTime(item.optString("end", ""))
+                        val nowPlaying = item.optInt("now_playing", 0) == 1
+                        if (title.isNotBlank()) {
+                            result.add(ShortEpgEntry(title, description, start, end, nowPlaying))
+                        }
+                    }
+                } else {
+                    RemoteLogger.log(
+                        level = "DEBUG", tag = "SyncDebug",
+                        message = "fetchShortEpg streamId=$streamId: no epg_listings in response, prefix=${jsonStr.take(150)}"
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            RemoteLogger.log(
+                level = "ERROR", tag = "SyncDebug",
+                message = "fetchShortEpg streamId=$streamId EXCEPTION error=${e.javaClass.simpleName}: ${e.message}"
+            )
+        }
+        result
+    }
+
+    private fun decodeEpgText(base64Text: String): String {
+        if (base64Text.isBlank()) return ""
+        return try {
+            String(android.util.Base64.decode(base64Text, android.util.Base64.DEFAULT), Charsets.UTF_8).trim()
+        } catch (e: Exception) {
+            base64Text
+        }
+    }
+
+    private fun formatEpgTime(raw: String): String {
+        // الصيغة القادمة من Xtream عادة "yyyy-MM-dd HH:mm:ss" — نستخرج الساعة والدقيقة فقط
+        return try {
+            val timePart = raw.split(" ").getOrNull(1) ?: return raw
+            timePart.take(5)
+        } catch (e: Exception) {
+            raw
+        }
+    }
 }
+
+data class ShortEpgEntry(
+    val title: String,
+    val description: String,
+    val start: String,
+    val end: String,
+    val isNowPlaying: Boolean
+)
