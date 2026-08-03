@@ -262,93 +262,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     },
-                    bottomBar = {
-                        if (currentlyPlaying == null && !isWideScreen && !isAuthRequired) {
-                            NavigationBar(
-                                containerColor = com.example.ui.theme.DarkCardBg,
-                                contentColor = Color.White,
-                                windowInsets = WindowInsets.navigationBars
-                            ) {
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.HOME,
-                                    onClick = { viewModel.setTab(MainTab.HOME) },
-                                    icon = { Icon(Icons.Default.Home, contentDescription = LocalizationHelper.translate("home", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.LIVE_TV,
-                                    onClick = { viewModel.setTab(MainTab.LIVE_TV) },
-                                    icon = { Icon(Icons.Default.Tv, contentDescription = LocalizationHelper.translate("live_tv", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.MOVIES,
-                                    onClick = { viewModel.setTab(MainTab.MOVIES) },
-                                    icon = { Icon(Icons.Default.Movie, contentDescription = LocalizationHelper.translate("movies", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.SERIES,
-                                    onClick = { viewModel.setTab(MainTab.SERIES) },
-                                    icon = { Icon(Icons.Default.VideoLibrary, contentDescription = LocalizationHelper.translate("series", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.FAVORITES,
-                                    onClick = { viewModel.setTab(MainTab.FAVORITES) },
-                                    icon = { Icon(Icons.Default.Favorite, contentDescription = LocalizationHelper.translate("favorites", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-
-                                NavigationBarItem(
-                                    selected = selectedTab == MainTab.USER_ACCOUNT,
-                                    onClick = { viewModel.setTab(MainTab.USER_ACCOUNT) },
-                                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = LocalizationHelper.translate("my_account", appLanguage)) },
-                                    colors = NavigationBarItemDefaults.colors(
-                                        selectedIconColor = parsedAccentColor,
-                                        selectedTextColor = parsedAccentColor,
-                                        indicatorColor = parsedAccentColor.copy(alpha = 0.15f),
-                                        unselectedIconColor = Color.Gray,
-                                        unselectedTextColor = Color.Gray
-                                    )
-                                )
-                            }
-                        }
-                    },
+                    // شريط التنقّل السفلي العائم (المعرَّف أدناه في محتوى الشاشة) يحل الآن محل شريط
+                    // Scaffold التقليدي في كل الوضعيات (عمودي وأفقي) — لا حاجة لـ bottomBar منفصل هنا
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     Box(
@@ -358,7 +273,8 @@ class MainActivity : ComponentActivity() {
                     ) {
                         BackHandler(enabled = selectedTab != MainTab.HOME && !isAuthRequired && currentlyPlaying == null) { viewModel.setTab(MainTab.HOME) }
                         // لا تُعرض أي قائمة تنقّل فوق شاشة القنوات المباشرة (Live TV) بناءً على طلب صريح
-                        val isFloatingNavVisible = isWideScreen && currentlyPlaying == null && !isAuthRequired && selectedTab != MainTab.LIVE_TV
+                        // نفس شريط التنقّل العائم يظهر في الوضعيتين (عمودي وأفقي) الآن بدل شريط سفلي مختلف لكل منهما
+                        val isFloatingNavVisible = currentlyPlaying == null && !isAuthRequired && selectedTab != MainTab.LIVE_TV
 
                         Box(
                             modifier = Modifier
@@ -757,7 +673,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // شريط تنقّل سفلي عائم (للشاشات العريضة/التلفاز فقط) — لا يظهر في وضع القنوات المباشرة
+                        // شريط تنقّل سفلي عائم — نفس التصميم في كل الوضعيات (عمودي وأفقي)، ولا يظهر في وضع القنوات المباشرة
                         if (isFloatingNavVisible) {
                             val floatingNavItems = listOf(
                                 MainTab.HOME to (Icons.Default.Home to "home"),
@@ -774,6 +690,7 @@ class MainActivity : ComponentActivity() {
                                 shadowElevation = 12.dp,
                                 modifier = Modifier
                                     .align(androidx.compose.ui.Alignment.BottomCenter)
+                                    .navigationBarsPadding()
                                     .padding(bottom = 20.dp)
                                     .zIndex(2f)
                             ) {
