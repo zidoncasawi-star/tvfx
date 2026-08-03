@@ -692,7 +692,6 @@ class MainActivity : ComponentActivity() {
                                     .align(androidx.compose.ui.Alignment.BottomCenter)
                                     .fillMaxWidth()
                                     .padding(horizontal = 14.dp)
-                                    .navigationBarsPadding()
                                     .zIndex(2f)
                             ) {
                                 Row(
