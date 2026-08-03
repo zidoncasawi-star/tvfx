@@ -317,11 +317,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 xtreamPassword = check.xtreamPassword ?: account.xtreamPassword
             )
             repository.updateAccount(updated)
-            
-            _isSyncing.value = false
-            
-            // Check if any playlists/content exist, otherwise navigate to the import page
+
+            // Check if any playlists/content exist
             val currentPlaylists = repository.playlists.firstOrNull() ?: emptyList()
+
+            // إن كان الحساب مفعَّلاً ومعه بيانات Xtream حقيقية ولا يوجد محتوى مستورَد بعد، نستورد
+            // فوراً في نفس جلسة تسجيل الدخول بدل ترك المستخدم عالقاً في شاشة "بانتظار التفعيل" —
+            // سابقاً كان الاستيراد التلقائي يعمل فقط عند إعادة فتح التطبيق من الصفر (init{})، فيظهر
+            // وكأن الدخول "لا يعمل" إلى أن يخرج المستخدم ويدخل من جديد
+            if (check.isActivated && updated.xtreamHost.isNotBlank() && currentPlaylists.isEmpty()) {
+                RemoteLogger.log(
+                    username = account.username, level = "DEBUG", tag = "LoginDebug",
+                    message = "completeLoginFlow: account activated with no local playlists yet — auto-importing now"
+                )
+                _isSyncing.value = true
+                _importProgress.value = 0
+                performAdminImport(updated)
+                return
+            }
+
+            _isSyncing.value = false
+
             if (currentPlaylists.isEmpty()) {
                 _selectedTab.value = MainTab.USER_ACCOUNT
                 _userMessage.value = "تم تسجيل الدخول بنجاح! يرجى استيراد المحتوى للبدء."

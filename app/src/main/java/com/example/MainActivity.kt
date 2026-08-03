@@ -684,47 +684,37 @@ class MainActivity : ComponentActivity() {
                                 MainTab.USER_ACCOUNT to (Icons.Default.AccountCircle to "my_account")
                             )
                             Surface(
-                                color = Color(0xFF17171B),
+                                color = Color(0xFF17171B).copy(alpha = 0.55f),
                                 contentColor = Color.White,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
-                                shadowElevation = 12.dp,
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                                shadowElevation = 6.dp,
                                 modifier = Modifier
                                     .align(androidx.compose.ui.Alignment.BottomCenter)
                                     .navigationBarsPadding()
-                                    .padding(bottom = 20.dp)
+                                    .padding(bottom = 4.dp)
                                     .zIndex(2f)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
                                     floatingNavItems.forEach { (tab, info) ->
                                         val isSelected = selectedTab == tab
-                                        Row(
-                                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                        Box(
+                                            contentAlignment = androidx.compose.ui.Alignment.Center,
                                             modifier = Modifier
-                                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
+                                                .size(40.dp)
+                                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
                                                 .background(if (isSelected) parsedAccentColor.copy(alpha = 0.85f) else Color.Transparent)
                                                 .clickable { viewModel.setTab(tab) }
-                                                .padding(horizontal = 14.dp, vertical = 10.dp)
                                         ) {
                                             Icon(
                                                 imageVector = info.first,
                                                 contentDescription = LocalizationHelper.translate(info.second, appLanguage),
                                                 tint = if (isSelected) Color.White else Color.LightGray,
-                                                modifier = Modifier.size(20.dp)
+                                                modifier = Modifier.size(18.dp)
                                             )
-                                            if (isSelected) {
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Text(
-                                                    text = LocalizationHelper.translate(info.second, appLanguage),
-                                                    color = Color.White,
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    maxLines = 1
-                                                )
-                                            }
                                         }
                                     }
                                 }
