@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.model.UserAccountEntity
 import com.example.ui.theme.DarkCardBg
 import com.example.ui.theme.NetflixRed
@@ -265,7 +266,58 @@ fun UserAccountSection(
                             }
                             
                             Spacer(modifier = Modifier.height(16.dp))
-                            
+
+                            // QR Code + رابط تفعيل مباشر — نفس طريقة webapp: يدخل مباشرة بكوده دون كتابته يدوياً
+                            val activationUrl = remember(userAccount.activationCode) {
+                                "https://app.flixplayer.pro/login.php?code=" +
+                                    java.net.URLEncoder.encode(userAccount.activationCode, "UTF-8")
+                            }
+                            val qrImageUrl = remember(activationUrl) {
+                                "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" +
+                                    java.net.URLEncoder.encode(activationUrl, "UTF-8")
+                            }
+                            val localContext = androidx.compose.ui.platform.LocalContext.current
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Surface(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                ) {
+                                    AsyncImage(
+                                        model = qrImageUrl,
+                                        contentDescription = "رمز QR للتفعيل",
+                                        modifier = Modifier
+                                            .size(160.dp)
+                                            .padding(8.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedButton(
+                                onClick = {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(activationUrl))
+                                    localContext.startActivity(intent)
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                            ) {
+                                Icon(Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("فتح صفحة التفعيل", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
                             // Check Activation Button
                             Button(
                                 onClick = onCheckActivation,
