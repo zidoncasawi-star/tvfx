@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -48,6 +49,7 @@ fun SettingsDialog(
     }
 
     val isRtl = currentLanguage == "ar"
+    val uriHandler = LocalUriHandler.current
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -340,6 +342,54 @@ fun SettingsDialog(
                                         text = t("server") + ": VIP Stream Link",
                                         color = Color.Gray,
                                         fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Legal: Terms and Conditions / Privacy Policy
+                    SettingsSection(title = t("legal"), icon = Icons.Default.Gavel, accentColorHex = currentAccentColorHex) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val legalLinks = listOf(
+                                Triple(t("terms_conditions"), Icons.Default.Description, "https://app.flixplayer.pro/terms.php"),
+                                Triple(t("privacy_policy"), Icons.Default.PrivacyTip, "https://app.flixplayer.pro/privacy.php")
+                            )
+                            legalLinks.forEach { (label, icon, url) ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White.copy(alpha = 0.03f))
+                                        .clickable { uriHandler.openUri(url) }
+                                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = Color.LightGray,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = label,
+                                            color = Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.OpenInNew,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(14.dp)
                                     )
                                 }
                             }

@@ -38,7 +38,10 @@ object LocalizationHelper {
             "auto" to "تلقائي (Auto)",
             "fhd" to "عالية (FHD 1080p)",
             "hd" to "متوسطة (HD 720p)",
-            "sd" to "منخفضة (SD 480p)"
+            "sd" to "منخفضة (SD 480p)",
+            "legal" to "قانوني",
+            "terms_conditions" to "الشروط والأحكام",
+            "privacy_policy" to "سياسة الخصوصية"
         ),
         "en" to mapOf(
             "home" to "Home",
@@ -76,7 +79,10 @@ object LocalizationHelper {
             "auto" to "Automatic (Auto)",
             "fhd" to "High (FHD 1080p)",
             "hd" to "Medium (HD 720p)",
-            "sd" to "Low (SD 480p)"
+            "sd" to "Low (SD 480p)",
+            "legal" to "Legal",
+            "terms_conditions" to "Terms and Conditions",
+            "privacy_policy" to "Privacy Policy"
         ),
         "fr" to mapOf(
             "home" to "Accueil",
@@ -114,7 +120,10 @@ object LocalizationHelper {
             "auto" to "Automatique (Auto)",
             "fhd" to "Élevée (FHD 1080p)",
             "hd" to "Moyenne (HD 720p)",
-            "sd" to "Basse (SD 480p)"
+            "sd" to "Basse (SD 480p)",
+            "legal" to "Mentions légales",
+            "terms_conditions" to "Conditions Générales",
+            "privacy_policy" to "Politique de Confidentialité"
         )
     )
 
