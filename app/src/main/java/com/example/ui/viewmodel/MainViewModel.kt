@@ -253,6 +253,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         pass = pass
                     )
                     
+                    RemoteLogger.log(
+                        username = identifier, level = "DEBUG", tag = "LoginDebug",
+                        message = "Remote login attempt identifier=$identifier adminUrl=$adminUrl rawResponse=${remoteJson?.toString() ?: "null"}"
+                    )
+
                     if (remoteJson != null) {
                         if (remoteJson.optBoolean("success", false)) {
                             // Remote Login Success! Create or update local account
@@ -280,6 +285,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    RemoteLogger.log(
+                        username = identifier, level = "ERROR", tag = "LoginDebug",
+                        message = "Remote login threw exception identifier=$identifier error=${e.javaClass.simpleName}: ${e.message}"
+                    )
                     _authError.value = "فشل الاتصال بالخادم. تأكد من بياناتك والاتصال بالشبكة."
                     _isSyncing.value = false
                 }
