@@ -78,6 +78,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         playWelcomeSound()
+        // يمنع قفل الشاشة تلقائياً طالما التطبيق مفتوحاً وفي المقدمة
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContent {
                 val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
@@ -564,6 +566,7 @@ class MainActivity : ComponentActivity() {
                                         title = media.title,
                                         type = media.type,
                                         channelList = media.channelList,
+                                        episodeList = media.episodeList,
                                         initialPlaybackPositionMs = media.startPositionMs,
                                         onClose = { viewModel.stopMedia() },
                                         onProgressUpdate = { pos, dur ->
@@ -579,6 +582,19 @@ class MainActivity : ComponentActivity() {
                                                     category = ch.category,
                                                     type = "LIVE",
                                                     channelList = channels
+                                                )
+                                            )
+                                        },
+                                        onEpisodeSelect = { ep ->
+                                            viewModel.playMedia(
+                                                PlayingMedia(
+                                                    id = ep.id,
+                                                    title = "${media.seriesTitle} - ${ep.title}",
+                                                    streamUrl = ep.streamUrl,
+                                                    posterUrl = media.posterUrl,
+                                                    type = "EPISODE",
+                                                    episodeList = media.episodeList,
+                                                    seriesTitle = media.seriesTitle
                                                 )
                                             )
                                         }
@@ -613,7 +629,9 @@ class MainActivity : ComponentActivity() {
                                             title = "${detail.series?.title ?: ""} - ${ep.title}",
                                             streamUrl = ep.streamUrl,
                                             posterUrl = detail.series?.posterUrl ?: "",
-                                            type = "EPISODE"
+                                            type = "EPISODE",
+                                            episodeList = detail.episodes.sortedWith(compareBy({ it.seasonNum }, { it.episodeNum })),
+                                            seriesTitle = detail.series?.title ?: ""
                                         )
                                     )
                                 },

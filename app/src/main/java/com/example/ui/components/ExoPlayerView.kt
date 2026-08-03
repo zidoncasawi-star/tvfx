@@ -44,6 +44,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.example.model.ChannelEntity
+import com.example.model.Episode
 import com.example.ui.theme.LiveRed
 import com.example.ui.theme.NetflixRed
 import kotlinx.coroutines.delay
@@ -77,10 +78,12 @@ fun ExoPlayerView(
     title: String,
     type: String, // "LIVE", "MOVIE", "EPISODE"
     channelList: List<ChannelEntity> = emptyList(),
+    episodeList: List<Episode> = emptyList(),
     initialPlaybackPositionMs: Long = 0L,
     onClose: () -> Unit,
     onProgressUpdate: (positionMs: Long, durationMs: Long) -> Unit = { _, _ -> },
     onChannelSelect: (ChannelEntity) -> Unit = {},
+    onEpisodeSelect: (Episode) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -243,6 +246,14 @@ fun ExoPlayerView(
                     duration = exoPlayer.duration.coerceAtLeast(0L)
                     isAutoReconnecting = false
                     reconnectAttempt = 0
+                }
+                // تمرير تلقائي للحلقة التالية فور انتهاء الحلقة الحالية (مثل نتفليكس)
+                if (playbackState == Player.STATE_ENDED && type == "EPISODE" && episodeList.isNotEmpty()) {
+                    val currentIndex = episodeList.indexOfFirst { it.streamUrl == mediaUrl }
+                    val nextEpisode = if (currentIndex >= 0) episodeList.getOrNull(currentIndex + 1) else null
+                    if (nextEpisode != null) {
+                        onEpisodeSelect(nextEpisode)
+                    }
                 }
             }
 

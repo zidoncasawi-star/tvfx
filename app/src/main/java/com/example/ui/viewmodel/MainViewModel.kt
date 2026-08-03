@@ -20,6 +20,8 @@ data class PlayingMedia(
     val category: String = "",
     val type: String, // "LIVE", "MOVIE", "EPISODE"
     val channelList: List<ChannelEntity> = emptyList(),
+    val episodeList: List<Episode> = emptyList(),
+    val seriesTitle: String = "",
     val startPositionMs: Long = 0L
 )
 
