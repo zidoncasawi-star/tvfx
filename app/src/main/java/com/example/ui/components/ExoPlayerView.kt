@@ -261,11 +261,19 @@ fun ExoPlayerView(
             // بعض ملفات MKV/HLS تحتوي أكثر من مسار صوت (لغات/دوبلاج مختلفة)
             override fun onTracksChanged(tracks: Tracks) {
                 val options = mutableListOf<AudioTrackOption>()
+                val debugLines = mutableListOf<String>()
+                var audioGroupCount = 0
                 tracks.groups.forEach { group ->
                     if (group.type == C.TRACK_TYPE_AUDIO) {
+                        audioGroupCount++
                         for (trackIndex in 0 until group.length) {
-                            if (!group.isTrackSupported(trackIndex)) continue
                             val format = group.getTrackFormat(trackIndex)
+                            val supported = group.isTrackSupported(trackIndex)
+                            debugLines.add(
+                                "g=$audioGroupCount i=$trackIndex supported=$supported mime=${format.sampleMimeType} " +
+                                    "lang=${format.language} label=${format.label} ch=${format.channelCount} selected=${group.isTrackSelected(trackIndex)}"
+                            )
+                            if (!supported) continue
                             val language = format.language
                             val displayName = when {
                                 !format.label.isNullOrBlank() -> format.label!!
@@ -286,6 +294,10 @@ fun ExoPlayerView(
                     }
                 }
                 availableAudioTracks = options
+                com.example.data.RemoteLogger.log(
+                    level = "DEBUG", tag = "AudioTrackDebug",
+                    message = "url=$mediaUrl audioGroups=$audioGroupCount resolvedOptions=${options.size} | ${debugLines.joinToString(" || ")}"
+                )
             }
         }
 
