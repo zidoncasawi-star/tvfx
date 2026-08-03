@@ -40,6 +40,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -159,7 +160,11 @@ fun ExoPlayerView(
 
     // ExoPlayer Instance
     val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
+        // EXTENSION_RENDERER_MODE_ON: يفضّل فك التشفير العتادي المدمج بالجهاز دائماً عند توفره،
+        // ولا يلجأ إلى امتداد FFmpeg (يدعم AC3/EAC3/DTS) إلا للترميزات التي لا يدعمها الجهاز أصلاً
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             playWhenReady = true
         }
     }
