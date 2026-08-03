@@ -280,11 +280,19 @@ fun ExoPlayerView(
                             )
                             if (!supported) continue
                             val language = format.language
+                            val languageName = if (!language.isNullOrBlank()) {
+                                runCatching { java.util.Locale(language).displayLanguage }
+                                    .getOrNull()?.takeIf { it.isNotBlank() } ?: language
+                            } else null
+                            // نجمع الوسم المخزَّن في الملف (مثل "Surround" التي تصف تهيئة القنوات وليس اللغة)
+                            // مع اسم اللغة الفعلي إن وُجد، لأن الاعتماد على الوسم وحده يجعل مسارات
+                            // مختلفة تظهر بنفس الاسم تماماً (كلاهما "Surround") ويتعذّر تمييزها
+                            val rawLabel = format.label?.takeIf { it.isNotBlank() }
                             val displayName = when {
-                                !format.label.isNullOrBlank() -> format.label!!
-                                !language.isNullOrBlank() -> runCatching {
-                                    java.util.Locale(language).displayLanguage
-                                }.getOrNull()?.takeIf { it.isNotBlank() } ?: language
+                                rawLabel != null && languageName != null && !rawLabel.equals(languageName, ignoreCase = true) ->
+                                    "$rawLabel ($languageName)"
+                                rawLabel != null -> rawLabel
+                                languageName != null -> languageName
                                 else -> "مسار صوت ${options.size + 1}"
                             }
                             options.add(
@@ -298,7 +306,20 @@ fun ExoPlayerView(
                         }
                     }
                 }
-                availableAudioTracks = options
+                // إن بقيت أسماء متطابقة رغم الدمج أعلاه (بيانات الملف نفسها ناقصة/متطابقة)، نرقّمها
+                // برقم تسلسلي حتى يبقى بإمكان المستخدم تمييز المسارات والتبديل بينها فعلياً
+                val nameCounts = options.groupingBy { it.label }.eachCount()
+                val seenSoFar = mutableMapOf<String, Int>()
+                val numberedOptions = options.map { option ->
+                    if ((nameCounts[option.label] ?: 0) > 1) {
+                        val nextIndex = (seenSoFar[option.label] ?: 0) + 1
+                        seenSoFar[option.label] = nextIndex
+                        option.copy(label = "${option.label} ($nextIndex)")
+                    } else {
+                        option
+                    }
+                }
+                availableAudioTracks = numberedOptions
                 com.example.data.RemoteLogger.log(
                     level = "DEBUG", tag = "AudioTrackDebug",
                     message = "url=$mediaUrl audioGroups=$audioGroupCount resolvedOptions=${options.size} | ${debugLines.joinToString(" || ")}"
