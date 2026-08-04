@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import com.example.model.MainTab
 import com.example.ui.components.UserAccountSection
 import com.example.ui.components.ExoPlayerView
@@ -74,10 +75,35 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // يستخرج كود الربط من رابط QR (https://app.flixplayer.pro/pair.php?code=XXXXXX) عند فتحه من كاميرا الهاتف،
+    // ويربط سطح المكتب مباشرة تلقائياً دون أي إدخال يدوي — بدل الاكتفاء بإظهار الكود كنص فقط
+    private fun handleIncomingPairLink(intent: android.content.Intent?) {
+        val data = intent?.data ?: return
+        val code = data.getQueryParameter("code") ?: return
+        if (code.isBlank()) return
+
+        // عند فتح الرابط والتطبيق مغلَق بالكامل (cold start)، قد يستغرق تحميل حساب المستخدم من قاعدة
+        // البيانات المحلية جزءاً من الثانية — ننتظره بدل تجاهل الربط فوراً بسبب قيمة null مؤقتة
+        lifecycleScope.launch {
+            val account = kotlinx.coroutines.withTimeoutOrNull(5000) {
+                viewModel.loggedInAccount.first { it != null }
+            }
+            if (account != null) {
+                viewModel.linkDesktop(code)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        handleIncomingPairLink(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         playWelcomeSound()
+        handleIncomingPairLink(intent)
         // يمنع قفل الشاشة تلقائياً طالما التطبيق مفتوحاً وفي المقدمة
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 

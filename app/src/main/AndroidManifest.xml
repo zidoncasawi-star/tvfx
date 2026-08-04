@@ -20,11 +20,24 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.MyApplication">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- يفتح التطبيق مباشرة عند مسح رمز QR ربط سطح المكتب بكاميرا الهاتف العادية
+                 (autoVerify يتطلب رفع assetlinks.json على النطاق ليعمل بدون قائمة اختيار تطبيق) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="app.flixplayer.pro"
+                    android:pathPrefix="/pair.php" />
             </intent-filter>
         </activity>
     </application>
