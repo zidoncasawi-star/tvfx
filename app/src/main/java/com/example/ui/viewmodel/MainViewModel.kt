@@ -86,6 +86,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** يفصل تطبيق سطح المكتب عن بُعد مباشرة من الهاتف، ثم يستعيد الهاتف نفسه كجهاز نشط فوراً */
+    fun forceLogoutDesktop() {
+        val account = loggedInAccount.value ?: return
+        viewModelScope.launch {
+            com.example.data.AdminPanelClient.clearActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            _lockedByOtherDevice.value = false
+            _userMessage.value = "تم تسجيل خروج الحاسوب بنجاح"
+        }
+    }
+
     private suspend fun checkDeviceLock(account: UserAccountEntity): Boolean {
         return try {
             val check = com.example.data.AdminPanelClient.checkSubscriptionStatus(

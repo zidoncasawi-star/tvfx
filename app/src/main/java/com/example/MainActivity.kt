@@ -146,7 +146,8 @@ class MainActivity : ComponentActivity() {
                 if (lockedByOtherDevice) {
                     com.example.ui.screens.DeviceLockScreen(
                         onRetry = { viewModel.checkSubscription() },
-                        onLogout = { viewModel.logoutUser() }
+                        onLogout = { viewModel.logoutUser() },
+                        onForceLogoutDesktop = { viewModel.forceLogoutDesktop() }
                     )
                     return@FlixTvTheme
                 }

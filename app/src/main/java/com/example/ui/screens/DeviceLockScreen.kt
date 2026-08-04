@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PhonelinkErase
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +24,7 @@ import com.example.ui.theme.NetflixRed
 
 // يظهر عندما يكون تطبيق سطح المكتب هو الجهاز النشط حالياً على هذا الحساب — على غرار web.whatsapp.com
 @Composable
-fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit) {
+fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDesktop: () -> Unit) {
     var checking by remember { mutableStateOf(false) }
 
     Box(
@@ -89,14 +90,28 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(
-                onClick = onLogout,
+                onClick = onForceLogoutDesktop,
                 colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Icon(Icons.Default.PhonelinkErase, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("تسجيل الخروج من الحاسوب عن بُعد", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedButton(
+                onClick = onLogout,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f)),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("تسجيل الخروج من هذا الهاتف", fontWeight = FontWeight.Bold)
+                Text("تسجيل الخروج من هذا الهاتف فقط", fontWeight = FontWeight.Bold)
             }
         }
     }
