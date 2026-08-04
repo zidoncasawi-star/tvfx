@@ -691,11 +691,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // فحص دوري لقفل الجهاز الواحد (كل 60 ثانية طالما المستخدم مسجَّل دخوله): إن أصبح سطح المكتب
+        // فحص دوري لقفل الجهاز الواحد (كل 15 ثانية طالما المستخدم مسجَّل دخوله): إن أصبح سطح المكتب
         // هو الجهاز النشط أثناء استخدام الهاتف، يظهر قفل فوري يطلب تسجيل الخروج من الحاسوب
         viewModelScope.launch {
             while (true) {
-                kotlinx.coroutines.delay(60_000)
+                kotlinx.coroutines.delay(15_000)
                 try {
                     val account = repository.loggedInAccount.first() ?: continue
                     if (!account.isActivated) continue
