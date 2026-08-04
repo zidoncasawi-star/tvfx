@@ -108,6 +108,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // سطح المكتب التي قد تكون قيد التنفيذ في نفس اللحظة (نفس سبب الملاحظة في completeLoginFlow)
             val locked = check.activeDeviceType != null && check.activeDeviceType != "phone"
             _lockedByOtherDevice.value = locked
+            RemoteLogger.log(
+                username = account.username, level = "DEBUG", tag = "DeviceLockCheck",
+                message = "checkDeviceLock[passive-v2, no auto-claim] activeDeviceType=${check.activeDeviceType} locked=$locked"
+            )
             locked
         } catch (e: Exception) {
             false // لا إنترنت: لا نمنع المستخدم من استخدام آخر جلسة محفوظة محلياً
