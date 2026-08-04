@@ -104,12 +104,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 username = account.username,
                 activationCode = account.activationCode
             )
+            // فحص سلبي فقط (مراقبة) — لا يستدعي setActiveDevice عمداً لتجنّب سباق مع عملية ربط
+            // سطح المكتب التي قد تكون قيد التنفيذ في نفس اللحظة (نفس سبب الملاحظة في completeLoginFlow)
             val locked = check.activeDeviceType != null && check.activeDeviceType != "phone"
             _lockedByOtherDevice.value = locked
-            if (!locked) {
-                // نُثبّت هذا الهاتف كجهاز نشط (بدون انتظار) حتى نمنع الحاسوب من العمل بالمقابل
-                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
-            }
             locked
         } catch (e: Exception) {
             false // لا إنترنت: لا نمنع المستخدم من استخدام آخر جلسة محفوظة محلياً
@@ -658,10 +656,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     activationCode = account.activationCode
                 )
 
+                // ملاحظة: لا نستدعي setActiveDevice هنا عمداً — هذا الفحص يعمل تلقائياً بصمت عند كل
+                // فتح للتطبيق (بما فيه فتحه عبر رابط ربط QR)، فلو "طالب" بالجهاز هنا لأمكنه التسبب
+                // بسباق (race) يسرق القفل من عملية ربط سطح المكتب التي قد تكون قيد التنفيذ في نفس اللحظة.
+                // المطالبة الفعلية تحدث فقط عند فعل مستخدم صريح: تسجيل دخول أو ضغط "تحقق من التفعيل".
                 val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != "phone"
                 _lockedByOtherDevice.value = lockedByDesktop
                 if (lockedByDesktop) return@launch
-                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
 
                 val newHost = check.xtreamHost
                 val newUser = check.xtreamUsername
