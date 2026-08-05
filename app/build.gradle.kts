@@ -97,6 +97,9 @@ dependencies {
   implementation("androidx.media3:media3-exoplayer:1.5.1")
   implementation("androidx.media3:media3-ui:1.5.1")
   implementation("androidx.media3:media3-exoplayer-hls:1.5.1")
+  // شاشات Android TV (D-pad focus، Card/Text المهيّأة لمسافة المشاهدة على التلفاز)
+  implementation("androidx.tv:tv-foundation:1.0.0-alpha12")
+  implementation("androidx.tv:tv-material:1.0.0")
   // فك تشفير AC3/EAC3/DTS احتياطياً — أغلب أجهزة Android لا تدعم فك تشفير هذه الترميزات
   // بشكل عتادي افتراضياً، وMedia3 لا يوفرها ضمن مكتبته الأساسية لأسباب ترخيص FFmpeg
   implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.5.0+1")

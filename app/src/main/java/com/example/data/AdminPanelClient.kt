@@ -259,6 +259,54 @@ object AdminPanelClient {
         }
     }
 
+    data class TvPairingCreateResult(val success: Boolean, val code: String? = null)
+    data class TvPairingCheckResult(val status: String, val session: JSONObject? = null)
+
+    /**
+     * ينشئ كود ربط مؤقت (6 أرقام) لتطبيق التلفاز — نفس آلية pair_create.php المستخدمة أصلاً من
+     * سطح المكتب، لكن مع deviceType="tv" حتى يُسجَّل التلفاز (لا سطح المكتب) كجهاز نشط عند الموافقة.
+     */
+    suspend fun createTvPairing(adminUrl: String): TvPairingCreateResult = withContext(Dispatchers.IO) {
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/pair_create.php"
+            val bodyJson = JSONObject().apply { put("deviceType", "tv") }
+            val body = bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE)
+            val request = Request.Builder().url(url).post(body).build()
+
+            client.newCall(request).execute().use { response ->
+                val respBody = response.body?.string() ?: return@withContext TvPairingCreateResult(false)
+                val json = JSONObject(respBody)
+                return@withContext TvPairingCreateResult(
+                    success = json.optBoolean("success", false),
+                    code = json.optString("code", "").ifBlank { null }
+                )
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            return@withContext TvPairingCreateResult(false)
+        }
+    }
+
+    /** يستطلعه التلفاز دورياً بعد createTvPairing بانتظار موافقة الهاتف — نفس pair_check.php */
+    suspend fun checkTvPairing(adminUrl: String, code: String): TvPairingCheckResult = withContext(Dispatchers.IO) {
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/pair_check.php?code=${java.net.URLEncoder.encode(code, "UTF-8")}"
+            val request = Request.Builder().url(url).get().build()
+
+            client.newCall(request).execute().use { response ->
+                val respBody = response.body?.string() ?: return@withContext TvPairingCheckResult("pending")
+                val json = JSONObject(respBody)
+                return@withContext TvPairingCheckResult(
+                    status = json.optString("status", "pending"),
+                    session = json.optJSONObject("session")
+                )
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            return@withContext TvPairingCheckResult("pending")
+        }
+    }
+
     /**
      * Tracks app installation/open by sending the device ID to the external Admin Panel.
      */

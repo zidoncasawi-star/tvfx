@@ -355,6 +355,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * يكمل تسجيل الدخول باستخدام بيانات جلسة وردت من موافقة ربط هاتف (pair_check.php)، دون الحاجة
+     * لاسم مستخدم/كلمة مرور محليين — نفس ما يفعله تطبيق سطح المكتب عند حفظ session في localStorage
+     * بعد نجاح الربط. تُستخدم من شاشة "ربط الهاتف" في واجهة التلفاز.
+     */
+    fun completeTvPairingLogin(session: org.json.JSONObject, adminUrl: String) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            _userMessage.value = "تم الربط! جاري تسجيل الدخول..."
+            val account = UserAccountEntity(
+                fullName = session.optString("fullName", "مستخدم"),
+                email = session.optString("email", ""),
+                username = session.optString("username", ""),
+                passwordHash = "",
+                activationCode = session.optString("activationCode", ""),
+                adminServerUrl = adminUrl,
+                xtreamHost = session.optString("xtreamHost", ""),
+                xtreamUsername = session.optString("xtreamUsername", ""),
+                xtreamPassword = session.optString("xtreamPassword", ""),
+                isLoggedIn = true
+            )
+            repository.insertAccount(account)
+            completeLoginFlow(account)
+        }
+    }
+
     private suspend fun completeLoginFlow(account: UserAccountEntity) {
         // Check activation status and update account details
         try {
@@ -502,6 +528,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val updated = account.copy(adminServerUrl = url)
             repository.updateAccount(updated)
             _userMessage.value = "تم تحديث عنوان لوحة الإدارة بنجاح."
+        }
+    }
+
+    /**
+     * عودة صامتة لشاشة تسجيل الدخول عند اكتشاف أن جهازاً آخر أصبح النشط — تُمسح الجلسة محلياً فقط
+     * دون استدعاء clearActiveDevice (الجهاز الآخر هو المالك الشرعي الآن للقفل). هذا يطابق سلوك
+     * returnToLoginScreen() في تطبيق سطح المكتب (لا توجد شاشة قفل وسيطة على واجهة التلفاز أو سطح المكتب).
+     */
+    fun returnToLoginLocally() {
+        viewModelScope.launch {
+            repository.logoutUserAccount()
+            _lockedByOtherDevice.value = false
         }
     }
 

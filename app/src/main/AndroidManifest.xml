@@ -5,9 +5,19 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- التطبيق يعمل على الهاتف والتلفاز معاً من نفس الحزمة: يبقى Leanback اختيارياً (required=false)
+         حتى لا يستبعد متجر Play التطبيق من أجهزة الهاتف العادية، ونفس الشيء بالنسبة لشاشة اللمس -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <application
         android:name=".FlixApplication"
         android:allowBackup="true"
+        android:banner="@drawable/tv_banner"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -38,6 +48,22 @@
                     android:scheme="https"
                     android:host="app.flixplayer.pro"
                     android:pathPrefix="/pair.php" />
+            </intent-filter>
+        </activity>
+
+        <!-- نقطة دخول مخصصة لأجهزة تلفزيون Android: نفس الحزمة والبيانات، بواجهة مصممة لمسافة
+             المشاهدة (10-foot UI) والتنقل عبر جهاز التحكم (D-pad) بدل اللمس. أجهزة التلفاز تبحث
+             تلقائياً عن فئة LEANBACK_LAUNCHER أولاً، وتتجاهل MainActivity الخاص بالهاتف -->
+        <activity
+            android:name=".tv.TvMainActivity"
+            android:exported="true"
+            android:banner="@drawable/tv_banner"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.MyApplication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
