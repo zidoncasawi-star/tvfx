@@ -4,14 +4,12 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -54,11 +52,11 @@ fun SplashScreen(onFinish: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.mipmap.ic_launcher),
+                painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = "FXTV Player",
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit,
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(RoundedCornerShape(22.dp))
                     .scale(scale.value)
                     .alpha(alpha.value)
             )

@@ -74,12 +74,10 @@ fun TvNavRail(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.mipmap.ic_launcher_round),
+            painter = painterResource(id = R.drawable.app_logo),
             contentDescription = "FXTV Player",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(12.dp))
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(46.dp)
         )
         Spacer(modifier = Modifier.padding(top = 18.dp))
 

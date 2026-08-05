@@ -574,11 +574,9 @@ fun UserAccountSection(
                 Spacer(modifier = Modifier.height(8.dp))
                 // Brand Header
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher_round),
+                    painter = painterResource(id = R.drawable.app_logo),
                     contentDescription = "FXTV Player",
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(80.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
