@@ -582,13 +582,6 @@ fun UserAccountSection(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "RODIX TV",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Black,
-                    color = NetflixRed
-                )
-
-                Text(
                     text = "بوابة الحساب الشخصي وتجربة البث الرقمية",
                     fontSize = 12.sp,
                     color = Color.Gray,
