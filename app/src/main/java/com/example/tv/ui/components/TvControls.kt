@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -138,8 +139,16 @@ fun TvTextField(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     var focused by remember { mutableStateOf(false) }
+    val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     Surface(
-        onClick = {},
+        // الضغط على "موافق" بالريموت هنا فقط يُركّز الـ Surface نفسه (بحدّه الأحمر)، لكن لا يفتح
+        // لوحة مفاتيح التلفاز تلقائياً — لازم نطلب التركيز صراحة على BasicTextField الداخلي
+        // ونستدعي show() على متحكم لوحة المفاتيح البرمجية يدوياً
+        onClick = {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        },
         modifier = modifier
             .onFocusChanged { focused = it.isFocused },
         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
@@ -161,6 +170,9 @@ fun TvTextField(
                 cursorBrush = androidx.compose.ui.graphics.SolidColor(TvRed),
                 visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { if (it.isFocused) keyboardController?.show() },
                 decorationBox = { inner ->
                     if (value.isEmpty()) {
                         Text(placeholder, color = TvTextGray)

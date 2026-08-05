@@ -35,6 +35,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = StreamRepository(AppDatabase.getInstance(application))
 
+    // نوع هذا الجهاز عند مقارنة/تسجيل الجهاز النشط (قفل الجهاز الواحد) — "phone" افتراضياً؛
+    // يستدعي TvMainActivity الدالة أدناه فور إنشاء الـ ViewModel ليصبح "tv" بدل الافتراضي.
+    // بدون هذا، كانت كل الفحوصات هنا تفترض دوماً أن "phone" يمثّل هذا الجهاز، فتعتبر جلسة
+    // التلفاز نفسها "جهازاً آخر" فور تسجيل الدخول وتُرجعه فوراً لشاشة الدخول.
+    private var selfDeviceType: String = "phone"
+
+    fun configureAsTvDevice() {
+        selfDeviceType = "tv"
+    }
+
     private val prefs = application.getSharedPreferences("flix_tv_settings", Context.MODE_PRIVATE)
 
     private val _appLanguage = MutableStateFlow(prefs.getString("key_app_lang", "ar") ?: "ar")
@@ -91,7 +101,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val account = loggedInAccount.value ?: return
         viewModelScope.launch {
             com.example.data.AdminPanelClient.clearActiveDevice(account.adminServerUrl, account.username, account.activationCode)
-            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode, selfDeviceType)
             _lockedByOtherDevice.value = false
             _userMessage.value = "تم تسجيل خروج الحاسوب بنجاح"
         }
@@ -106,7 +116,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             // فحص سلبي فقط (مراقبة) — لا يستدعي setActiveDevice عمداً لتجنّب سباق مع عملية ربط
             // سطح المكتب التي قد تكون قيد التنفيذ في نفس اللحظة (نفس سبب الملاحظة في completeLoginFlow)
-            val locked = check.activeDeviceType != null && check.activeDeviceType != "phone"
+            val locked = check.activeDeviceType != null && check.activeDeviceType != selfDeviceType
             _lockedByOtherDevice.value = locked
             RemoteLogger.log(
                 username = account.username, level = "DEBUG", tag = "DeviceLockCheck",
@@ -395,13 +405,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     "isActivated=${check.isActivated} message=${check.message} xtreamHost=${check.xtreamHost} expiresAt=${check.expiresAt}"
             )
 
-            val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != "phone"
+            val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != selfDeviceType
             _lockedByOtherDevice.value = lockedByDesktop
             if (lockedByDesktop) {
                 _isSyncing.value = false
                 return
             }
-            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+            com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode, selfDeviceType)
 
             val updated = account.copy(
                 isActivated = check.isActivated,
@@ -463,13 +473,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     activationCode = account.activationCode
                 )
 
-                val lockedByDesktop = result.activeDeviceType != null && result.activeDeviceType != "phone"
+                val lockedByDesktop = result.activeDeviceType != null && result.activeDeviceType != selfDeviceType
                 _lockedByOtherDevice.value = lockedByDesktop
                 if (lockedByDesktop) {
                     _isSyncing.value = false
                     return@launch
                 }
-                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode)
+                com.example.data.AdminPanelClient.setActiveDevice(account.adminServerUrl, account.username, account.activationCode, selfDeviceType)
 
                 val updated = account.copy(
                     isActivated = result.isActivated,
@@ -702,7 +712,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // فتح للتطبيق (بما فيه فتحه عبر رابط ربط QR)، فلو "طالب" بالجهاز هنا لأمكنه التسبب
                 // بسباق (race) يسرق القفل من عملية ربط سطح المكتب التي قد تكون قيد التنفيذ في نفس اللحظة.
                 // المطالبة الفعلية تحدث فقط عند فعل مستخدم صريح: تسجيل دخول أو ضغط "تحقق من التفعيل".
-                val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != "phone"
+                val lockedByDesktop = check.activeDeviceType != null && check.activeDeviceType != selfDeviceType
                 _lockedByOtherDevice.value = lockedByDesktop
                 if (lockedByDesktop) return@launch
 

@@ -75,6 +75,10 @@ class TvMainActivity : ComponentActivity() {
         enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        // يجب ضبط هذا قبل أي فحص لقفل الجهاز الواحد، وإلا يعتبر الـ ViewModel نفسه (المهيَّأ
+        // افتراضياً كـ "phone") جهازاً غريباً فور تسجيل دخول التلفاز ويُعيده فوراً لشاشة الدخول
+        viewModel.configureAsTvDevice()
+
         setContent {
             FxTvTelevisionTheme {
                 val showSplash by viewModel.showSplash.collectAsStateWithLifecycle()

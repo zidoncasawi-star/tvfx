@@ -226,14 +226,14 @@ object AdminPanelClient {
         }
     }
 
-    /** يجعل هذا الجهاز (الهاتف) هو الجهاز النشط — يُستدعى بعد أي تسجيل دخول عادي (بدون ربط QR) */
-    suspend fun setActiveDevice(adminUrl: String, username: String, activationCode: String) = withContext(Dispatchers.IO) {
+    /** يجعل هذا الجهاز هو الجهاز النشط — يُستدعى بعد أي تسجيل دخول عادي (بدون ربط QR) */
+    suspend fun setActiveDevice(adminUrl: String, username: String, activationCode: String, deviceType: String = "phone") = withContext(Dispatchers.IO) {
         try {
             val url = "${adminUrl.trimEnd('/')}/api/set_active_device.php"
             val bodyJson = JSONObject().apply {
                 put("username", username)
                 put("activationCode", activationCode)
-                put("deviceType", "phone")
+                put("deviceType", deviceType)
             }
             val body = bodyJson.toString().toRequestBody(JSON_MEDIA_TYPE)
             val request = Request.Builder().url(url).post(body).build()
