@@ -99,8 +99,28 @@ class MainActivity : ComponentActivity() {
         handleIncomingPairLink(intent)
     }
 
+    // بعض أجهزة التلفاز الرخيصة (Android عادي بواجهة مخصّصة فوقه) لا تفهم فئة LEANBACK_LAUNCHER
+    // إطلاقاً، فتفتح هذا النشاط (MainActivity) مباشرة بدل TvMainActivity رغم تسجيله في الـ Manifest.
+    // هذا الفحص وقت التشغيل شبكة أمان: يكتشف كوننا على تلفاز فعلياً (وضع UI Mode، أو عدم وجود
+    // شاشة لمس، أو دعم Leanback/Television) ويحوّل تلقائياً لواجهة التلفاز الصحيحة.
+    private fun isRunningOnTelevision(): Boolean {
+        val uiModeManager = getSystemService(android.content.Context.UI_MODE_SERVICE) as? android.app.UiModeManager
+        val isUiModeTv = uiModeManager?.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
+        val hasNoTouchscreen = !packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TOUCHSCREEN)
+        val hasTvFeature = packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_LEANBACK) ||
+            packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TELEVISION)
+        return isUiModeTv || hasTvFeature || hasNoTouchscreen
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (isRunningOnTelevision()) {
+            startActivity(android.content.Intent(this, com.example.tv.TvMainActivity::class.java))
+            finish()
+            return
+        }
+
         enableEdgeToEdge()
         playWelcomeSound()
         handleIncomingPairLink(intent)
