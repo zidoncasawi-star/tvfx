@@ -2,6 +2,7 @@ package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.model.UserAccountEntity
 import com.example.ui.theme.DarkCardBg
 import com.example.ui.theme.NetflixRed
@@ -570,20 +573,13 @@ fun UserAccountSection(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 // Brand Header
-                Surface(
-                    color = NetflixRed.copy(alpha = 0.15f),
-                    shape = CircleShape,
-                    modifier = Modifier.size(68.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = NetflixRed,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
-                }
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_launcher_round),
+                    contentDescription = "FXTV Player",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
