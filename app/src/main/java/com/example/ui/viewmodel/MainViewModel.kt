@@ -547,6 +547,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * returnToLoginScreen() في تطبيق سطح المكتب (لا توجد شاشة قفل وسيطة على واجهة التلفاز أو سطح المكتب).
      */
     fun returnToLoginLocally() {
+        // بدون هذا كان الفيديو/الصوت يستمر بالعمل بالخلفية بعد الرجوع لشاشة الدخول: طبقة المشغّل
+        // منفصلة عن حالة تسجيل الدخول ولا تُخفى تلقائياً لمجرد أن الحساب صار null
+        _currentlyPlaying.value = null
+        _mediaDetail.value = null
         viewModelScope.launch {
             repository.logoutUserAccount()
             _lockedByOtherDevice.value = false
@@ -555,6 +559,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logoutUser() {
         val account = loggedInAccount.value
+        // بدون هذا كان الفيديو/الصوت يستمر بالعمل بالخلفية بعد الخروج الصريح من الحساب
+        _currentlyPlaying.value = null
+        _mediaDetail.value = null
         viewModelScope.launch {
             if (account != null) {
                 // يُطلق قفل الجهاز عند الخروج الصريح، فيسمح لسطح المكتب بالعمل من جديد
