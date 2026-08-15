@@ -49,6 +49,7 @@ import com.example.tv.theme.TvTextWhite
 import com.example.tv.ui.components.TvFocusable
 import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
+import com.example.tv.ui.components.requestFocusWithRetry
 
 /** شاشة التفاصيل — نفس بنية #detailOverlay: خلفية باهتة، معلومات، وحلقات لكل موسم للمسلسلات. */
 @Composable
@@ -87,8 +88,7 @@ fun TvDetailScreen(
     val canPlay = movie != null || firstPlayableEpisode != null
     val initialFocusRequester = remember { FocusRequester() }
     LaunchedEffect(movie?.id, series?.id) {
-        kotlinx.coroutines.delay(80)
-        runCatching { initialFocusRequester.requestFocus() }
+        initialFocusRequester.requestFocusWithRetry()
     }
 
     // كان الانتقال يميناً من زرّي Play/Favorites (أسفل العمود الأيسر) نحو عمود الحلقات (الذي يبدأ

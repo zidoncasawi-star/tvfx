@@ -717,6 +717,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** يحدد إن كان برنامج EPG معيَّن (بالقناة + العنوان) مجدوَلاً بالفعل للتسجيل، لعرض حالة الزر الصحيحة */
+    fun isProgramScheduled(channelId: String, programTitle: String): Boolean =
+        recordings.value.any { it.status == "SCHEDULED" && it.channelId == channelId && it.programTitle == programTitle }
+
+    /** يبدّل حالة جدولة برنامج EPG مستقبلي: يُنشئ تسجيلاً مجدوَلاً إن لم يكن موجوداً، أو يلغيه إن كان مجدوَلاً بالفعل */
+    fun toggleScheduleForProgram(channel: ChannelEntity, entry: com.example.data.ShortEpgEntry, startAtMs: Long, durationMinutes: Int) {
+        val existing = recordings.value.firstOrNull {
+            it.status == "SCHEDULED" && it.channelId == channel.id && it.programTitle == entry.title
+        }
+        if (existing != null) {
+            viewModelScope.launch { com.example.data.RecordingManager.deleteRecording(getApplication(), existing) }
+            return
+        }
+        val pl = activePlaylist.value ?: return
+        viewModelScope.launch {
+            com.example.data.RecordingManager.scheduleRecording(
+                context = getApplication(),
+                playlistId = pl.id,
+                channelId = channel.id,
+                channelName = channel.name,
+                streamUrl = channel.streamUrl,
+                categoryName = channel.category,
+                programTitle = entry.title,
+                startAtMs = startAtMs,
+                durationMinutes = durationMinutes
+            )
+        }
+    }
+
     init {
         // Track app install/open on start
         viewModelScope.launch {

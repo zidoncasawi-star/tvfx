@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -71,7 +72,9 @@ private fun TvRecordingRow(
     onDeleteRecording: (RecordingEntity) -> Unit
 ) {
     val isRecording = rec.status == "RECORDING"
+    val isScheduled = rec.status == "SCHEDULED"
     val dateStr = remember(rec.startedAt) { SimpleDateFormat("MMM d, HH:mm", Locale.ENGLISH).format(Date(rec.startedAt)) }
+    val scheduledStr = remember(rec.scheduledStartAtMs) { SimpleDateFormat("MMM d, HH:mm", Locale.ENGLISH).format(Date(rec.scheduledStartAtMs)) }
     val durationStr = remember(rec.durationMs) {
         val totalSec = (rec.durationMs / 1000).toInt()
         val h = totalSec / 3600
@@ -104,19 +107,29 @@ private fun TvRecordingRow(
             }
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "${rec.channelName} · $dateStr · $durationStr" + if (isRecording) " · Recording" else "",
+                text = when {
+                    isRecording -> "${rec.channelName} · $dateStr · $durationStr · Recording"
+                    isScheduled -> "${rec.channelName} · Scheduled for $scheduledStr"
+                    else -> "${rec.channelName} · $dateStr · $durationStr"
+                },
                 color = if (isRecording) TvRed else TvTextGray,
                 fontSize = 12.sp
             )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (isRecording) {
-                TvRoundActionButton(icon = Icons.Default.Stop, contentDescription = "Stop", onClick = { onStopRecording(rec) })
-            } else {
-                TvRoundActionButton(icon = Icons.Default.PlayArrow, contentDescription = "Play", onClick = { onPlayRecording(rec) })
+            when {
+                // تسجيل قيد التنفيذ الآن — إيقاف
+                isRecording -> TvRoundActionButton(icon = Icons.Default.Stop, contentDescription = "Stop", onClick = { onStopRecording(rec) })
+                // موعد مستقبلي مجدوَل لم يبدأ بعد — لا ملف قابل للتشغيل بعد، فلا معنى لزر تشغيل هنا
+                isScheduled -> TvRoundActionButton(icon = Icons.Default.Schedule, contentDescription = "Scheduled", onClick = {})
+                else -> TvRoundActionButton(icon = Icons.Default.PlayArrow, contentDescription = "Play", onClick = { onPlayRecording(rec) })
             }
-            TvRoundActionButton(icon = Icons.Default.Delete, contentDescription = "Delete", onClick = { onDeleteRecording(rec) })
+            TvRoundActionButton(
+                icon = Icons.Default.Delete,
+                contentDescription = if (isScheduled) "Cancel" else "Delete",
+                onClick = { onDeleteRecording(rec) }
+            )
         }
     }
 }

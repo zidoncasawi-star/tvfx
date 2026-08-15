@@ -150,7 +150,12 @@ fun TvHomeScreen(
             info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 3
         }
     }
-    LaunchedEffect(shouldLoadMore, hasMoreCategories) {
+    // كان هذا الـ effect مربوطاً فقط بـ shouldLoadMore (قيمة true/false)، فإن كان التصنيف
+    // التالي المُحمَّل فارغاً فعلياً (لا يحتوي عناصر) لا يُضاف أي صف جديد للقائمة، فتبقى
+    // shouldLoadMore عالقة على true دون أن "تتغيّر" أبداً — ولأن LaunchedEffect لا يُعاد تنفيذه
+    // إلا عند تغيّر إحدى مفاتيحه فعلياً، كان التحميل يتوقف نهائياً ويبقى مؤشر الدوران يعمل للأبد.
+    // إضافة عدَّادات الكشف كمفاتيح يضمن إعادة تقييم الشرط بعد كل محاولة، حتى لو لم يتغيّر الناتج
+    LaunchedEffect(shouldLoadMore, hasMoreCategories, revealedMovieCatCount, revealedSeriesCatCount) {
         if (shouldLoadMore && hasMoreCategories) revealNextCategory()
     }
 

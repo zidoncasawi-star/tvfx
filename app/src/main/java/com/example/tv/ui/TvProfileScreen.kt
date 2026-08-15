@@ -45,7 +45,7 @@ import com.example.tv.theme.TvTextWhite
 import com.example.tv.ui.components.TvFocusable
 import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
-import kotlinx.coroutines.delay
+import com.example.tv.ui.components.requestFocusWithRetry
 
 private const val ADMIN_URL = "https://app.flixplayer.pro"
 
@@ -204,8 +204,7 @@ fun TvProfileScreen(
 private fun AddPlaylistQrDialog(username: String, activationCode: String, onDismiss: () -> Unit) {
     val closeFocusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
-        delay(80)
-        runCatching { closeFocusRequester.requestFocus() }
+        closeFocusRequester.requestFocusWithRetry()
     }
 
     val targetUrl = remember(username, activationCode) {

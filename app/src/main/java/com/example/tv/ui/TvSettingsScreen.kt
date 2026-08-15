@@ -143,7 +143,7 @@ fun TvSettingsScreen(
             item {
                 Spacer(Modifier.height(30.dp))
                 Text(
-                    "FXTV Player TV · v1.0",
+                    "FXTV Player TV · v${com.example.BuildConfig.VERSION_NAME} (${com.example.BuildConfig.VERSION_CODE})",
                     color = TvTextGray,
                     fontSize = 12.sp,
                     modifier = Modifier.fillMaxWidth(),

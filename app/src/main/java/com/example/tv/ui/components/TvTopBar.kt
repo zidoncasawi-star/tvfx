@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +33,6 @@ import com.example.tv.theme.TvPanel
 import com.example.tv.theme.TvRed
 import com.example.tv.theme.TvTextGray
 import com.example.tv.theme.TvTextWhite
-import kotlinx.coroutines.delay
 
 private const val PREFS_NAME = "tv_notifications_prefs"
 private const val KEY_LAST_SEEN_ID = "last_seen_notification_id"
@@ -47,6 +47,8 @@ fun TvTopBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onLogout: () -> Unit,
+    hasActiveRecording: Boolean = false,
+    onOpenRecordings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -80,6 +82,34 @@ fun TvTopBar(
         }
 
         Spacer(Modifier.weight(1f))
+
+        // مؤشّر تسجيل حالي — يطابق #recIndicatorBtn في سطح المكتب: أيقونة حمراء بجانب جرس
+        // الإشعارات مباشرة تظهر فقط أثناء وجود تسجيل قيد التنفيذ فعلياً، وتفتح شاشة التسجيلات
+        if (hasActiveRecording) {
+            Surface(
+                onClick = onOpenRecordings,
+                modifier = Modifier.size(42.dp),
+                shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
+                colors = ClickableSurfaceDefaults.colors(
+                    containerColor = TvRed.copy(alpha = 0.22f),
+                    focusedContainerColor = TvRed
+                ),
+                border = ClickableSurfaceDefaults.border(
+                    border = Border(androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)),
+                    focusedBorder = Border(androidx.compose.foundation.BorderStroke(2.dp, TvFocusBorder))
+                )
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        imageVector = Icons.Default.FiberManualRecord,
+                        contentDescription = "Recording in progress",
+                        tint = TvRed,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+        }
 
         Box {
             var focused by remember { mutableStateOf(false) }
@@ -126,8 +156,7 @@ fun TvTopBar(
     if (showPanel) {
         val panelCloseFocusRequester = remember { FocusRequester() }
         LaunchedEffect(showPanel) {
-            delay(80)
-            runCatching { panelCloseFocusRequester.requestFocus() }
+            panelCloseFocusRequester.requestFocusWithRetry()
         }
         Box(
             modifier = Modifier

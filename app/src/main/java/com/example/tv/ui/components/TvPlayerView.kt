@@ -137,8 +137,7 @@ fun TvPlayerView(
     // (خلف القائمة الآن) فتضيع كل ضغطات D-pad ولا يمكن التمرير داخل القائمة أو اختيار قناة
     LaunchedEffect(showChannelDrawer) {
         if (showChannelDrawer) {
-            delay(80)
-            runCatching { channelDrawerFirstItemFocusRequester.requestFocus() }
+            channelDrawerFirstItemFocusRequester.requestFocusWithRetry()
         }
     }
 
@@ -335,11 +334,10 @@ fun TvPlayerView(
     // الشاشة نفسها حتى تبقى قادرة على استقبال أي ضغطة ريموت وإظهار التحكم من جديد — بدونها، بعد
     // اختفاء الأزرار لا يوجد أي عنصر مركَّز فتضيع كل ضغطات D-pad ولا تصل أبداً لمعالج onKeyEvent
     LaunchedEffect(showControls) {
-        delay(50)
         if (showControls) {
-            runCatching { playPauseFocusRequester.requestFocus() }
+            playPauseFocusRequester.requestFocusWithRetry()
         } else {
-            runCatching { rootFocusRequester.requestFocus() }
+            rootFocusRequester.requestFocusWithRetry()
         }
     }
 
@@ -822,8 +820,7 @@ private fun TvSimpleDialog(title: String, onDismiss: () -> Unit, content: @Compo
     // مركَّز عند ظهور الحوار (مؤقّت النوم / مسار الصوت) فلا يستجيب الريموت إطلاقاً
     val closeFocusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
-        delay(80)
-        runCatching { closeFocusRequester.requestFocus() }
+        closeFocusRequester.requestFocusWithRetry()
     }
 
     Box(

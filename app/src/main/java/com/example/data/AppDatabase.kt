@@ -196,6 +196,9 @@ interface RecordingDao {
     @Query("SELECT * FROM recordings WHERE status = 'RECORDING'")
     suspend fun getActiveRecordingsSync(): List<RecordingEntity>
 
+    @Query("SELECT * FROM recordings WHERE status = 'SCHEDULED'")
+    suspend fun getScheduledRecordingsSync(): List<RecordingEntity>
+
     @Query("SELECT * FROM recordings WHERE id = :id")
     suspend fun getRecordingById(id: Long): RecordingEntity?
 
@@ -223,7 +226,7 @@ interface RecordingDao {
         WatchHistoryEntity::class,
         RecordingEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

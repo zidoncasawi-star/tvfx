@@ -130,13 +130,15 @@ data class RecordingEntity(
     val playlistId: Long,
     val channelId: String,
     val channelName: String,
+    val streamUrl: String = "", // مطلوب لبدء التسجيل فعلياً عند حلول موعد التسجيلات المجدولة
     val programTitle: String = "",
     val categoryName: String = "",
     val filePath: String = "",
     val startedAt: Long = System.currentTimeMillis(),
+    val scheduledStartAtMs: Long = 0L, // > 0 فقط للتسجيلات المجدولة قبل بدئها فعلياً
     val durationMs: Long = 0L,
     val plannedDurationMinutes: Int = 0, // 0 = يسجّل حتى الإيقاف اليدوي
-    val status: String = "RECORDING" // "RECORDING", "COMPLETED", "FAILED"
+    val status: String = "RECORDING" // "SCHEDULED", "RECORDING", "COMPLETED", "FAILED", "CANCELLED"
 )
 
 @Entity(tableName = "xtream_categories")

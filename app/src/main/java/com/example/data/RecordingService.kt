@@ -14,10 +14,12 @@ import com.example.model.RecordingEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -66,9 +68,25 @@ class RecordingService : Service() {
 
         when (intent?.action) {
             ACTION_STOP -> {
-                activeJobs[recordingId]?.cancel()
-                activeJobs.remove(recordingId)
-                stopIfIdle()
+                val job = activeJobs.remove(recordingId)
+                if (job != null) {
+                    job.cancel()
+                    stopIfIdle()
+                } else {
+                    // لا توجد مهمة تسجيل نشطة بهذا المعرّف في هذه العملية (مثلاً إن أُعيد تشغيل
+                    // النظام لخدمة التسجيل أو انهارت فعُيِّن activeJobs من جديد فارغة) — يبقى صف
+                    // قاعدة البيانات عالقاً على حالة "RECORDING" للأبد بلا هذا الإصلاح اليدوي، لأنه
+                    // لا يوجد أي Job لإلغائه يستدعي finalizeRecording. ويجب استدعاء stopIfIdle()
+                    // فقط بعد اكتمال الكتابة في قاعدة البيانات، وإلا فقد يُدمَّر onDestroy() الخدمة
+                    // (serviceJob.cancel()) قبل أن يكتمل هذا النداء غير المتزامن أصلاً
+                    val dao = AppDatabase.getInstance(applicationContext).recordingDao()
+                    serviceScope.launch {
+                        dao.getRecordingById(recordingId)?.let {
+                            if (it.status == "RECORDING") dao.updateRecording(it.copy(status = "COMPLETED"))
+                        }
+                        stopIfIdle()
+                    }
+                }
             }
             else -> {
                 val streamUrl = intent?.getStringExtra(EXTRA_STREAM_URL) ?: return START_NOT_STICKY
@@ -133,21 +151,37 @@ class RecordingService : Service() {
                 }
             }
 
-            dao.getRecordingById(recordingId)?.let {
-                dao.updateRecording(
-                    it.copy(
-                        status = if (outFile.length() > 0) "COMPLETED" else "FAILED",
-                        durationMs = System.currentTimeMillis() - startedAt,
-                        filePath = outFile.absolutePath
-                    )
-                )
+            finalizeRecording(dao, recordingId, outFile, startedAt, failed = false)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // هذا هو المسار الطبيعي عند إيقاف التسجيل يدوياً: onStartCommand يُلغي activeJobs[recordingId]
+            // مباشرة، فتُقاطَع هذه الحلقة بـ CancellationException. لا يجب معاملتها كفشل طالما أن
+            // الملف الناتج يحوي بيانات فعلية. الأهم: أي نداء suspend لاحق (مثل dao.updateRecording)
+            // يُنفَّذ من نفس هذه الروتين المُلغاة فعلياً سيُلغى فوراً بدوره ولن يُنفَّذ إطلاقاً ما لم
+            // يُغلَّف بـ NonCancellable — وهذا بالضبط سبب بقاء التسجيلات المُوقَفة يدوياً عالقة إلى
+            // الأبد على حالة "RECORDING" دون أن تُحفَظ أبداً بحالتها النهائية الصحيحة
+            withContext(NonCancellable) {
+                finalizeRecording(dao, recordingId, outFile, startedAt, failed = false)
             }
         } catch (e: Throwable) {
             RemoteLogger.log(level = "ERROR", tag = "RecordingService", message = "recordingId=$recordingId fatal: ${e.message}")
-            dao.getRecordingById(recordingId)?.let { dao.updateRecording(it.copy(status = "FAILED")) }
+            withContext(NonCancellable) {
+                finalizeRecording(dao, recordingId, outFile, startedAt, failed = true)
+            }
         } finally {
             activeJobs.remove(recordingId)
             stopIfIdle()
+        }
+    }
+
+    private suspend fun finalizeRecording(dao: RecordingDao, recordingId: Long, outFile: File, startedAt: Long, failed: Boolean) {
+        dao.getRecordingById(recordingId)?.let {
+            dao.updateRecording(
+                it.copy(
+                    status = if (!failed && outFile.length() > 0) "COMPLETED" else "FAILED",
+                    durationMs = System.currentTimeMillis() - startedAt,
+                    filePath = outFile.absolutePath
+                )
+            )
         }
     }
 

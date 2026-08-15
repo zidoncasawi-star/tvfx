@@ -58,6 +58,7 @@ import com.example.tv.ui.TvSettingsScreen
 import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
 import com.example.tv.ui.components.TvPlayerView
+import com.example.tv.ui.components.requestFocusWithRetry
 import com.example.ui.screens.SplashScreen
 import com.example.ui.viewmodel.MainViewModel
 import com.example.ui.viewmodel.PlayingMedia
@@ -183,7 +184,9 @@ class TvMainActivity : ComponentActivity() {
                                 adminUrl = ADMIN_URL,
                                 searchQuery = searchQuery,
                                 onSearchQueryChange = { searchQuery = it },
-                                onLogout = { viewModel.logoutUser() }
+                                onLogout = { viewModel.logoutUser() },
+                                hasActiveRecording = recordings.any { it.status == "RECORDING" },
+                                onOpenRecordings = { selectedTab = MainTab.RECORDINGS }
                             )
 
                             Box(modifier = Modifier.weight(1f)) {
@@ -262,6 +265,10 @@ class TvMainActivity : ComponentActivity() {
                                     onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
                                     onStopRecording = { ch ->
                                         viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
+                                    },
+                                    isProgramScheduled = { chId, title -> viewModel.isProgramScheduled(chId, title) },
+                                    onToggleSchedule = { ch, entry, startAt, minutes ->
+                                        viewModel.toggleScheduleForProgram(ch, entry, startAt, minutes)
                                     },
                                     isPreviewPaused = currentlyPlaying != null
                                 )
@@ -372,8 +379,7 @@ class TvMainActivity : ComponentActivity() {
                         // فتح المشغّل من شاشة التفاصيل
                         val settingsCloseFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
                         LaunchedEffect(showSettings) {
-                            kotlinx.coroutines.delay(80)
-                            runCatching { settingsCloseFocusRequester.requestFocus() }
+                            settingsCloseFocusRequester.requestFocusWithRetry()
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             TvSettingsScreen(
