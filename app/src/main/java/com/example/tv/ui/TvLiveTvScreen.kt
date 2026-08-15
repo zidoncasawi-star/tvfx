@@ -75,8 +75,20 @@ fun TvLiveTvScreen(
     var previewChannel by remember { mutableStateOf<ChannelEntity?>(channels.firstOrNull()) }
     var currentEpg by remember { mutableStateOf<List<ShortEpgEntry>>(emptyList()) }
 
-    val filtered = remember(channels, search) {
-        if (search.isBlank()) channels else channels.filter { it.name.contains(search, ignoreCase = true) }
+    // كانت قائمة القنوات تعرض جميع القنوات المحمَّلة محلياً دائماً بلا أي فلترة حسب التصنيف
+    // المختار — الضغط على تصنيف كان يُبرزه أحمر (تركيز فقط) ويطلب تحميل قنواته، لكن العمود
+    // كان يستمر بعرض نفس القائمة غير المُصنَّفة القديمة. نفس منطق فلترة الهاتف تماماً هنا.
+    val filtered = remember(channels, search, selectedCategoryId) {
+        val base = if (selectedCategoryId == null) channels else channels.filter { it.category == selectedCategoryId }
+        if (search.isBlank()) base else base.filter { it.name.contains(search, ignoreCase = true) }
+    }
+
+    // إن لم تعد القناة المعاينة حالياً ضمن قائمة التصنيف الجديد (أو عند أول تحميل)، نعاين
+    // أول قناة في القائمة الجديدة بدل الإبقاء على معاينة قناة من تصنيف آخر لم يعد ظاهراً
+    LaunchedEffect(filtered) {
+        if (filtered.isNotEmpty() && previewChannel?.id !in filtered.map { it.id }) {
+            previewChannel = filtered.first()
+        }
     }
 
     LaunchedEffect(previewChannel?.id) {
@@ -129,14 +141,20 @@ fun TvLiveTvScreen(
                 placeholder = "Search in category...",
                 modifier = Modifier.fillMaxWidth().padding(14.dp)
             )
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
-                items(filtered) { ch ->
-                    TvChannelRow(
-                        channel = ch,
-                        isPreviewing = previewChannel?.id == ch.id,
-                        onFocus = { previewChannel = ch },
-                        onClick = { onPlayChannel(ch) }
-                    )
+            if (filtered.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Loading channels...", color = TvTextGray, fontSize = 13.sp)
+                }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
+                    items(filtered) { ch ->
+                        TvChannelRow(
+                            channel = ch,
+                            isPreviewing = previewChannel?.id == ch.id,
+                            onFocus = { previewChannel = ch },
+                            onClick = { onPlayChannel(ch) }
+                        )
+                    }
                 }
             }
         }
