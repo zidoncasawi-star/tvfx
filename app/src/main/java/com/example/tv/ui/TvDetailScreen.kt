@@ -97,6 +97,13 @@ fun TvDetailScreen(
     val favoritesFocusRequester = remember { FocusRequester() }
     val episodesEntryFocusRequester = remember { FocusRequester() }
 
+    // نقطة الدخول الوحيدة إلى عمود الحلقات: زر الموسم الأول إن وُجدت مواسم، وإلا أول صف حلقة.
+    // إسناد نفس FocusRequester لعنصرين مختلفين في آنٍ واحد غير مسموح في Compose (يفشل عند استدعاء
+    // requestFocus() لاحقاً) — وكان هذا يحدث فعلياً لأي مسلسل بموسم واحد فقط: كان كل من أول رقاقة
+    // موسم (شرطها seasons.isNotEmpty()) وأول صف حلقة (شرطها كان seasons.size <= 1) يحاولان
+    // استخدام نفس FocusRequester معاً، فيفشل التنقل إلى الحلقات تماماً ولا يمكن تشغيل أي حلقة
+    val episodesEntryIsSeasonChip = seasons.isNotEmpty()
+
     Box(modifier = Modifier.fillMaxSize().background(TvBg)) {
         if (backdrop.isNotBlank()) {
             AsyncImage(
@@ -163,26 +170,31 @@ fun TvDetailScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val rightModifier = if (series != null) {
+                    // كان هذا الانتقال الصريح إلى عمود الحلقات مُطبَّقاً على زرّي Play و Favorites معاً،
+                    // فكان الضغط يميناً من Play يقفز مباشرة إلى الحلقات متجاوزاً زر Favorites تماماً —
+                    // ما جعله غير قابل للوصول إليه إطلاقاً عبر التنقل. الآن يُطبَّق فقط على Favorites
+                    // (آخر عنصر فعلياً قبل عمود الحلقات)، فيصل الضغط يميناً من Play إلى Favorites
+                    // بالبحث المكاني الطبيعي أولاً كما هو متوقَّع
+                    val jumpToEpisodesModifier = if (series != null) {
                         Modifier.focusProperties { right = episodesEntryFocusRequester }
                     } else Modifier
                     if (movie != null) {
                         TvPrimaryButton(
                             text = "▶ Play",
                             onClick = { onPlayMovie(movie) },
-                            modifier = Modifier.focusRequester(initialFocusRequester).then(rightModifier)
+                            modifier = Modifier.focusRequester(initialFocusRequester)
                         )
                     } else if (firstPlayableEpisode != null) {
                         TvPrimaryButton(
                             text = "▶ Play",
                             onClick = { onPlayEpisode(firstPlayableEpisode) },
-                            modifier = Modifier.focusRequester(initialFocusRequester).then(rightModifier)
+                            modifier = Modifier.focusRequester(initialFocusRequester)
                         )
                     }
                     TvOutlineButton(
                         text = if (isFavorite) "♥ In Favorites" else "♡ Add to Favorites",
                         onClick = onToggleFavorite,
-                        modifier = Modifier.focusRequester(favoritesFocusRequester).then(rightModifier)
+                        modifier = Modifier.focusRequester(favoritesFocusRequester).then(jumpToEpisodesModifier)
                     )
                 }
             }
@@ -207,7 +219,7 @@ fun TvDetailScreen(
                             itemsIndexed(seasons, key = { _, s -> s }) { index, s ->
                                 val active = s == selectedSeason
                                 TvFocusable(
-                                    modifier = if (index == 0) {
+                                    modifier = if (index == 0 && episodesEntryIsSeasonChip) {
                                         Modifier
                                             .focusRequester(episodesEntryFocusRequester)
                                             .focusProperties { left = favoritesFocusRequester }
@@ -233,7 +245,7 @@ fun TvDetailScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .then(
-                                        if (index == 0 && seasons.size <= 1) {
+                                        if (index == 0 && !episodesEntryIsSeasonChip) {
                                             Modifier
                                                 .focusRequester(episodesEntryFocusRequester)
                                                 .focusProperties { left = favoritesFocusRequester }
