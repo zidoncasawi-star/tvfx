@@ -132,16 +132,8 @@ fun TvHomeScreen(
             }
         }
 
-        if (channels.isNotEmpty()) {
-            item {
-                TvContentRow(title = "Live TV") {
-                    items(channels.take(30)) { ch ->
-                        TvPosterCard(title = ch.name, imageUrl = ch.logoUrl, isChannel = true) { onPlayChannel(ch) }
-                    }
-                }
-            }
-        }
-
+        // القنوات المباشرة عمداً لا تظهر في الصفحة الرئيسية — نفس سلوك سطح المكتب تماماً؛
+        // تبقى قابلة للوصول فقط من تبويب "Live TV" نفسه أو من نتائج البحث الشامل
         val allCategoryRows = movieCategoryRows.map { it to true } + seriesCategoryRows.map { it to false }
         allCategoryRows.take(visibleCategoryCount).forEach { (entry, isMovie) ->
             val (categoryName, categoryItems) = entry
