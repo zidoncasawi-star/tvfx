@@ -106,6 +106,14 @@ fun TvSettingsScreen(
             TvToggleRow("Autoplay Next Episode", autoplayEnabled, onAutoplayChange)
 
             TvGroupTitle("App")
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Language", color = TvTextWhite, fontSize = 14.sp)
+                Text("English", color = TvTextGray, fontSize = 13.sp)
+            }
+            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(TvBorder))
             Spacer(Modifier.height(4.dp))
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 TvOutlineButton(text = "Clear Local Cache", onClick = onClearCache, modifier = Modifier.fillMaxWidth())

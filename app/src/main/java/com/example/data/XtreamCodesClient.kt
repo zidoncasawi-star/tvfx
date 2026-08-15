@@ -339,18 +339,27 @@ object XtreamCodesClient {
         return null
     }
 
-    suspend fun fetchSeriesEpisodes(playlist: PlaylistEntity, seriesId: String): List<Episode> = withContext(Dispatchers.IO) {
+    suspend fun fetchSeriesEpisodes(playlist: PlaylistEntity, seriesId: String): SeriesInfoResult = withContext(Dispatchers.IO) {
         val serverUrl = playlist.serverUrl.trimEnd('/')
         val username = playlist.username
         val password = com.example.util.SecurityUtils.decrypt(playlist.password)
         val baseUrl = "$serverUrl/player_api.php?username=$username&password=$password"
         val url = "$baseUrl&action=get_series_info&series_id=$seriesId"
-        
+
         val episodes = mutableListOf<Episode>()
+        var genre = ""
+        var cast = ""
+        var infoPlot = ""
         try {
             val jsonStr = executeGet(url)
             if (jsonStr != null && jsonStr.trim().startsWith("{")) {
                 val jsonObj = JSONObject(jsonStr)
+                val infoObj = jsonObj.optJSONObject("info")
+                if (infoObj != null) {
+                    genre = infoObj.optString("genre", "")
+                    cast = infoObj.optString("cast", "")
+                    infoPlot = infoObj.optString("plot", "").ifBlank { infoObj.optString("description", "") }
+                }
                 val episodesObj = jsonObj.optJSONObject("episodes")
                 if (episodesObj == null) {
                     RemoteLogger.log(
@@ -407,7 +416,32 @@ object XtreamCodesClient {
                 message = "fetchSeriesEpisodes seriesId=$seriesId EXCEPTION host=$serverUrl error=${e.javaClass.simpleName}: ${e.message}"
             )
         }
-        episodes
+        SeriesInfoResult(episodes = episodes, genre = genre, cast = cast, plot = infoPlot)
+    }
+
+    /** يجلب genre/cast/plot لفيلم واحد — نفس get_vod_info المستخدم في سطح المكتب لعرضها في شاشة التفاصيل */
+    suspend fun fetchVodInfo(playlist: PlaylistEntity, vodId: String): VodInfoResult = withContext(Dispatchers.IO) {
+        val serverUrl = playlist.serverUrl.trimEnd('/')
+        val username = playlist.username
+        val password = com.example.util.SecurityUtils.decrypt(playlist.password)
+        val url = "$serverUrl/player_api.php?username=$username&password=$password&action=get_vod_info&vod_id=$vodId"
+        try {
+            val jsonStr = executeGet(url)
+            if (jsonStr != null && jsonStr.trim().startsWith("{")) {
+                val jsonObj = JSONObject(jsonStr)
+                val infoObj = jsonObj.optJSONObject("info")
+                if (infoObj != null) {
+                    return@withContext VodInfoResult(
+                        genre = infoObj.optString("genre", ""),
+                        cast = infoObj.optString("cast", ""),
+                        plot = infoObj.optString("plot", "").ifBlank { infoObj.optString("description", "") }
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+        VodInfoResult()
     }
 
     // دليل البرامج الحقيقي (EPG) للقناة — يجلب البرنامج الحالي والقادم فعلياً من سيرفر Xtream
@@ -472,6 +506,19 @@ object XtreamCodesClient {
         }
     }
 }
+
+data class SeriesInfoResult(
+    val episodes: List<Episode>,
+    val genre: String = "",
+    val cast: String = "",
+    val plot: String = ""
+)
+
+data class VodInfoResult(
+    val genre: String = "",
+    val cast: String = "",
+    val plot: String = ""
+)
 
 data class ShortEpgEntry(
     val title: String,

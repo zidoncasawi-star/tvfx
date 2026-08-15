@@ -48,7 +48,14 @@ import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
 import kotlinx.coroutines.delay
 
-private data class HeroItem(val title: String, val meta: String, val plot: String, val backdrop: String)
+private data class HeroItem(
+    val title: String,
+    val meta: String,
+    val plot: String,
+    val backdrop: String,
+    val movie: MovieEntity? = null,
+    val series: SeriesEntity? = null
+)
 
 /**
  * الشاشة الرئيسية — هيرو بانر دوّار (نفس .hero-banner) + صفوف أفقية للمحتوى (نفس .content-row).
@@ -62,11 +69,14 @@ fun TvHomeScreen(
     onPlayChannel: (ChannelEntity) -> Unit,
     onMovieClick: (MovieEntity) -> Unit,
     onSeriesClick: (SeriesEntity) -> Unit,
-    onResumeHistory: (WatchHistoryEntity) -> Unit
+    onResumeHistory: (WatchHistoryEntity) -> Unit,
+    onPlayMovie: (MovieEntity) -> Unit = onMovieClick
 ) {
     val heroSlides = remember(movies, series) {
-        val fromMovies = movies.take(3).map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }) }
-        val fromSeries = series.take(2).map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }) }
+        val fromMovies = movies.take(15).shuffled().take(3)
+            .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, movie = it) }
+        val fromSeries = series.take(10).shuffled().take(2)
+            .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, series = it) }
         (fromMovies + fromSeries).ifEmpty { listOf(HeroItem("FXTV PLAYER", "", "Connect a playlist to get started.", "")) }
     }
     var heroIndex by remember { mutableIntStateOf(0) }
@@ -77,6 +87,16 @@ fun TvHomeScreen(
             heroIndex = (heroIndex + 1) % heroSlides.size
         }
     }
+
+    // صفوف الأفلام والمسلسلات مُجمَّعة حسب التصنيف الحقيقي (وليس صفاً مسطحاً واحداً) — نفس أسلوب
+    // سطح المكتب في عرض الرئيسية؛ نعرض عدداً محدوداً من التصنيفات أولاً مع زر "تحميل المزيد"
+    val movieCategoryRows = remember(movies) {
+        movies.groupBy { it.category.ifBlank { "Movies" } }.toList()
+    }
+    val seriesCategoryRows = remember(series) {
+        series.groupBy { it.category.ifBlank { "Series" } }.toList()
+    }
+    var visibleCategoryCount by remember { mutableStateOf(4) }
 
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
@@ -92,8 +112,12 @@ fun TvHomeScreen(
                 dotsCount = heroSlides.size,
                 activeDot = heroIndex,
                 onPlay = {
-                    movies.getOrNull(heroIndex)?.let { onMovieClick(it) }
-                        ?: series.getOrNull(heroIndex - movies.take(3).size)?.let { onSeriesClick(it) }
+                    val slide = heroSlides[heroIndex]
+                    slide.movie?.let { onPlayMovie(it) } ?: slide.series?.let { onSeriesClick(it) }
+                },
+                onMoreInfo = {
+                    val slide = heroSlides[heroIndex]
+                    slide.movie?.let { onMovieClick(it) } ?: slide.series?.let { onSeriesClick(it) }
                 }
             )
         }
@@ -118,22 +142,28 @@ fun TvHomeScreen(
             }
         }
 
-        if (movies.isNotEmpty()) {
+        val allCategoryRows = movieCategoryRows.map { it to true } + seriesCategoryRows.map { it to false }
+        allCategoryRows.take(visibleCategoryCount).forEach { (entry, isMovie) ->
+            val (categoryName, categoryItems) = entry
             item {
-                TvContentRow(title = "Movies") {
-                    items(movies.take(30)) { m ->
-                        TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) }
+                TvContentRow(title = categoryName) {
+                    items(categoryItems.take(30)) { it2 ->
+                        if (isMovie) {
+                            @Suppress("UNCHECKED_CAST")
+                            TvPosterCard(title = (it2 as MovieEntity).title, imageUrl = it2.posterUrl) { onMovieClick(it2) }
+                        } else {
+                            @Suppress("UNCHECKED_CAST")
+                            TvPosterCard(title = (it2 as SeriesEntity).title, imageUrl = it2.posterUrl) { onSeriesClick(it2) }
+                        }
                     }
                 }
             }
         }
 
-        if (series.isNotEmpty()) {
+        if (visibleCategoryCount < allCategoryRows.size) {
             item {
-                TvContentRow(title = "Series") {
-                    items(series.take(30)) { s ->
-                        TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) }
-                    }
+                Box(modifier = Modifier.fillMaxWidth().padding(start = 40.dp, top = 10.dp, bottom = 30.dp)) {
+                    TvOutlineButton(text = "Load More Categories", onClick = { visibleCategoryCount += 4 })
                 }
             }
         }
@@ -143,7 +173,7 @@ fun TvHomeScreen(
 }
 
 @Composable
-private fun TvHeroBanner(item: HeroItem, dotsCount: Int, activeDot: Int, onPlay: () -> Unit) {
+private fun TvHeroBanner(item: HeroItem, dotsCount: Int, activeDot: Int, onPlay: () -> Unit, onMoreInfo: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,6 +244,7 @@ private fun TvHeroBanner(item: HeroItem, dotsCount: Int, activeDot: Int, onPlay:
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 TvPrimaryButton(text = "▶ Watch Now", onClick = onPlay)
+                TvOutlineButton(text = "ⓘ More Info", onClick = onMoreInfo)
             }
         }
     }

@@ -4,6 +4,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- لخدمة تسجيل البث المباشر (DVR) التي تعمل في الخلفية أثناء التسجيل -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- التطبيق يعمل على الهاتف والتلفاز معاً من نفس الحزمة: يبقى Leanback اختيارياً (required=false)
          حتى لا يستبعد متجر Play التطبيق من أجهزة الهاتف العادية، ونفس الشيء بالنسبة لشاشة اللمس -->
@@ -66,6 +70,11 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".data.RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

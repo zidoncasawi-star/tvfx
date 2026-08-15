@@ -28,7 +28,9 @@ data class PlayingMedia(
 data class MediaDetailState(
     val movie: MovieEntity? = null,
     val series: SeriesEntity? = null,
-    val episodes: List<Episode> = emptyList()
+    val episodes: List<Episode> = emptyList(),
+    val genre: String = "",
+    val cast: String = ""
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -485,7 +487,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     isActivated = result.isActivated,
                     xtreamHost = result.xtreamHost ?: account.xtreamHost,
                     xtreamUsername = result.xtreamUsername ?: account.xtreamUsername,
-                    xtreamPassword = result.xtreamPassword ?: account.xtreamPassword
+                    xtreamPassword = result.xtreamPassword ?: account.xtreamPassword,
+                    expiresAt = result.expiresAt ?: account.expiresAt
                 )
                 repository.updateAccount(updated)
                 
@@ -675,6 +678,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (pl != null) repository.getFavoriteSeries(pl.id) else flowOf(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // التسجيلات (DVR) — قائمة كل تسجيلات هذا الجهاز، بغض النظر عن الـ playlist النشطة حالياً
+    val recordings: StateFlow<List<RecordingEntity>> =
+        AppDatabase.getInstance(application).recordingDao().getAllRecordings()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun isChannelRecording(channelId: String): Boolean =
+        recordings.value.any { it.status == "RECORDING" && it.channelId == channelId }
+
+    fun activeRecordingForChannel(channelId: String): RecordingEntity? =
+        recordings.value.firstOrNull { it.status == "RECORDING" && it.channelId == channelId }
+
+    /** يبدأ تسجيل قناة مباشرة — يُستخدم لكل من زر "⏺ Record" الفوري على المعاينة وزر تسجيل برنامج EPG محدد */
+    fun startRecording(channel: ChannelEntity, programTitle: String = "", durationMinutes: Int = 0) {
+        if (isChannelRecording(channel.id)) return
+        val pl = activePlaylist.value ?: return
+        viewModelScope.launch {
+            com.example.data.RecordingManager.startRecording(
+                context = getApplication(),
+                playlistId = pl.id,
+                channelId = channel.id,
+                channelName = channel.name,
+                streamUrl = channel.streamUrl,
+                categoryName = channel.category,
+                programTitle = programTitle,
+                durationMinutes = durationMinutes
+            )
+        }
+    }
+
+    fun stopRecording(recordingId: Long) {
+        com.example.data.RecordingManager.stopRecording(getApplication(), recordingId)
+    }
+
+    fun deleteRecording(recording: RecordingEntity) {
+        viewModelScope.launch {
+            com.example.data.RecordingManager.deleteRecording(getApplication(), recording)
+        }
+    }
+
     init {
         // Track app install/open on start
         viewModelScope.launch {
@@ -829,11 +871,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openMovieDetail(movie: MovieEntity) {
         _mediaDetail.value = MediaDetailState(movie = movie)
+        if (movie.id.startsWith("xt_mov_")) {
+            viewModelScope.launch {
+                val active = activePlaylist.value ?: return@launch
+                val realId = movie.id.split("_").lastOrNull() ?: return@launch
+                val info = com.example.data.XtreamCodesClient.fetchVodInfo(active, realId)
+                _mediaDetail.value?.let { current ->
+                    if (current.movie?.id == movie.id) {
+                        _mediaDetail.value = current.copy(genre = info.genre, cast = info.cast)
+                    }
+                }
+            }
+        }
     }
 
     fun openSeriesDetail(seriesItem: SeriesEntity) {
         _mediaDetail.value = MediaDetailState(series = seriesItem, episodes = emptyList())
         viewModelScope.launch {
+            var genre = ""
+            var cast = ""
             val episodes = if (seriesItem.streamUrl.isNotBlank() && !seriesItem.streamUrl.startsWith("http://dummy")) {
                 listOf(
                     com.example.model.Episode(
@@ -857,11 +913,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 if (active != null && realId != null) {
                     val result = com.example.data.XtreamCodesClient.fetchSeriesEpisodes(active, realId)
+                    genre = result.genre
+                    cast = result.cast
                     RemoteLogger.log(
-                        level = if (result.isEmpty()) "ERROR" else "DEBUG", tag = "SyncDebug",
-                        message = "fetchSeriesEpisodes seriesId=$realId -> episodes=${result.size}"
+                        level = if (result.episodes.isEmpty()) "ERROR" else "DEBUG", tag = "SyncDebug",
+                        message = "fetchSeriesEpisodes seriesId=$realId -> episodes=${result.episodes.size}"
                     )
-                    result
+                    result.episodes
                 } else {
                     RemoteLogger.log(level = "ERROR", tag = "SyncDebug", message = "openSeriesDetail SKIPPED: active=$active realId=$realId")
                     emptyList()
@@ -871,7 +929,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             _mediaDetail.value?.let { current ->
                 if (current.series?.id == seriesItem.id) {
-                    _mediaDetail.value = current.copy(episodes = episodes)
+                    _mediaDetail.value = current.copy(episodes = episodes, genre = genre, cast = cast)
                 }
             }
         }

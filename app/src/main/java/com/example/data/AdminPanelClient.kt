@@ -307,6 +307,47 @@ object AdminPanelClient {
         }
     }
 
+    /** إشعار واحد يبثّه الأدمن من لوحة التحكم — نفس مصدر بيانات #notifPanelList في سطح المكتب */
+    data class AppNotification(
+        val id: Int,
+        val title: String,
+        val contentType: String,
+        val content: String,
+        val buttonLabel: String?,
+        val buttonUrl: String?,
+        val createdAt: Long
+    )
+
+    /** يجلب الإشعارات المفعّلة المستهدِفة لهذه المنصة أو "الكل" — نفس notifications_list.php المستخدم في سطح المكتب */
+    suspend fun fetchNotifications(adminUrl: String, platform: String = "android"): List<AppNotification> = withContext(Dispatchers.IO) {
+        if (adminUrl.isBlank()) return@withContext emptyList()
+        try {
+            val url = "${adminUrl.trimEnd('/')}/api/notifications_list.php?platform=$platform"
+            val request = Request.Builder().url(url).get().build()
+            client.newCall(request).execute().use { response ->
+                val respBody = response.body?.string() ?: return@withContext emptyList()
+                val json = JSONObject(respBody)
+                if (!json.optBoolean("success", false)) return@withContext emptyList()
+                val arr = json.optJSONArray("notifications") ?: return@withContext emptyList()
+                (0 until arr.length()).map { i ->
+                    val n = arr.getJSONObject(i)
+                    AppNotification(
+                        id = n.optInt("id"),
+                        title = n.optString("title"),
+                        contentType = n.optString("contentType"),
+                        content = n.optString("content"),
+                        buttonLabel = n.optString("buttonLabel", "").ifBlank { null },
+                        buttonUrl = n.optString("buttonUrl", "").ifBlank { null },
+                        createdAt = n.optLong("createdAt")
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     /**
      * Tracks app installation/open by sending the device ID to the external Admin Panel.
      */

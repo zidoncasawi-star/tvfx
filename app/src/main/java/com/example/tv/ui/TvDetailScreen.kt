@@ -52,6 +52,8 @@ fun TvDetailScreen(
     series: SeriesEntity?,
     episodes: List<Episode>,
     isFavorite: Boolean,
+    genre: String = "",
+    cast: String = "",
     onClose: () -> Unit,
     onPlayMovie: (MovieEntity) -> Unit,
     onPlayEpisode: (Episode) -> Unit,
@@ -102,19 +104,31 @@ fun TvDetailScreen(
                     Spacer(Modifier.height(8.dp))
                     Text(meta, color = TvTextGray, fontSize = 13.sp)
                 }
-                if (category.isNotBlank()) {
+                val genreTags = remember(genre, category) {
+                    genre.split(",").map { it.trim() }.filter { it.isNotBlank() }
+                        .ifEmpty { listOfNotNull(category.takeIf { it.isNotBlank() }) }
+                }
+                if (genreTags.isNotEmpty()) {
                     Spacer(Modifier.height(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
-                    ) {
-                        Text(category, color = Color(0xFFDDDDDD), fontSize = 12.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        genreTags.take(5).forEach { tag ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+                                    .padding(horizontal = 12.dp, vertical = 5.dp)
+                            ) {
+                                Text(tag, color = Color(0xFFDDDDDD), fontSize = 12.sp)
+                            }
+                        }
                     }
                 }
                 if (plot.isNotBlank()) {
                     Spacer(Modifier.height(14.dp))
                     Text(plot, color = Color(0xFFDDDDDD), fontSize = 14.sp, lineHeight = 20.sp)
+                }
+                if (cast.isNotBlank()) {
+                    Spacer(Modifier.height(10.dp))
+                    Text("Cast: $cast", color = TvTextGray, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

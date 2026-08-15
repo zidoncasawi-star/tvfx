@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -15,7 +16,9 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,6 +54,9 @@ fun LiveTvScreen(
     onExit: () -> Unit,
     isFullPlayerActive: Boolean = false,
     onFetchEpg: suspend (ChannelEntity) -> List<com.example.data.ShortEpgEntry> = { emptyList() },
+    isChannelRecording: (String) -> Boolean = { false },
+    onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
+    onStopRecording: (ChannelEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
@@ -401,48 +407,46 @@ fun LiveTvScreen(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 20.sp,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
                             )
+                            val recording = isChannelRecording(previewChannel!!.id)
+                            IconButton(
+                                onClick = {
+                                    val ch = previewChannel!!
+                                    if (recording) onStopRecording(ch) else onStartRecording(ch, ch.name, 120)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (recording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
+                                    contentDescription = if (recording) "إيقاف التسجيل" else "تسجيل",
+                                    tint = if (recording) NetflixRed else Color.White
+                                )
+                            }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(24.dp))
-                        
-                        val nowProgram = currentEpg.firstOrNull { it.isNowPlaying } ?: currentEpg.firstOrNull()
-                        val nextProgram = currentEpg.firstOrNull { it != nowProgram }
-                        if (nowProgram != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = "الآن", color = NetflixRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                if (nowProgram.start.isNotBlank() && nowProgram.end.isNotBlank()) {
-                                    Text(
-                                        text = "  •  ${nowProgram.start} - ${nowProgram.end}",
-                                        color = Color.Gray,
-                                        fontSize = 12.sp
+
+                        // القائمة الكاملة لدليل البرامج القادمة (وليس فقط "الآن/التالي") — مطابق
+                        // لشريط EPG الأفقي في تطبيق سطح المكتب، بطاقة لكل برنامج مع شريط تقدّم للبرنامج الحالي
+                        Text(text = "دليل البرامج", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        if (currentEpg.isEmpty()) {
+                            Text(text = "NO EPG FOUND", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        } else {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                items(currentEpg) { program ->
+                                    EpgProgramCard(
+                                        program = program,
+                                        isRecording = program.isNowPlaying && isChannelRecording(previewChannel!!.id),
+                                        onRecordClick = {
+                                            val ch = previewChannel!!
+                                            if (isChannelRecording(ch.id)) onStopRecording(ch)
+                                            else onStartRecording(ch, program.title, estimateEpgDurationMinutes(program))
+                                        }
                                     )
                                 }
                             }
-                            Text(
-                                text = nowProgram.title,
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                            if (nowProgram.description.isNotBlank()) {
-                                Text(
-                                    text = nowProgram.description,
-                                    color = Color.LightGray,
-                                    fontSize = 12.sp,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                            if (nextProgram != null) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(text = "التالي: ${nextProgram.title}", color = Color.Gray, fontSize = 12.sp)
-                            }
-                        } else {
-                            Text(text = "NO EPG FOUND", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -539,5 +543,68 @@ fun LiveTvScreen(
                 }
             }
         }
+    }
+}
+
+/** يقدّر مدة برنامج EPG بالدقائق من نصّي "HH:mm" — يفترض عبور منتصف الليل إن كانت نهايته أصغر من بدايته */
+private fun estimateEpgDurationMinutes(entry: com.example.data.ShortEpgEntry): Int {
+    return try {
+        val (sh, sm) = entry.start.split(":").map { it.toInt() }
+        val (eh, em) = entry.end.split(":").map { it.toInt() }
+        var diff = (eh * 60 + em) - (sh * 60 + sm)
+        if (diff <= 0) diff += 24 * 60
+        diff.coerceIn(5, 6 * 60)
+    } catch (e: Exception) {
+        60
+    }
+}
+
+@Composable
+private fun EpgProgramCard(program: com.example.data.ShortEpgEntry, isRecording: Boolean = false, onRecordClick: () -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .width(190.dp)
+            .background(
+                if (program.isNowPlaying) NetflixRed.copy(alpha = 0.16f) else Color(0xFF1A1A1A),
+                RoundedCornerShape(8.dp)
+            )
+            .padding(10.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            if (program.isNowPlaying) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(NetflixRed, RoundedCornerShape(3.dp))
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = "الآن", color = NetflixRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                IconButton(onClick = onRecordClick, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
+                        contentDescription = if (isRecording) "إيقاف التسجيل" else "تسجيل",
+                        tint = if (isRecording) NetflixRed else Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+        }
+        if (program.isNowPlaying) {
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+        if (program.start.isNotBlank() && program.end.isNotBlank()) {
+            Text(text = "${program.start} - ${program.end}", color = Color.Gray, fontSize = 10.sp)
+        }
+        Text(
+            text = program.title,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = if (program.isNowPlaying) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }

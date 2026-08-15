@@ -50,11 +50,13 @@ import com.example.tv.ui.TvLiveTvScreen
 import com.example.tv.ui.TvLoginScreen
 import com.example.tv.ui.TvMoviesScreen
 import com.example.tv.ui.TvProfileScreen
+import com.example.tv.ui.TvRecordingsScreen
+import com.example.tv.ui.TvSearchResultsScreen
 import com.example.tv.ui.TvSeriesScreen
 import com.example.tv.ui.TvSettingsScreen
 import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
-import com.example.ui.components.ExoPlayerView
+import com.example.tv.ui.components.TvPlayerView
 import com.example.ui.screens.SplashScreen
 import com.example.ui.viewmodel.MainViewModel
 import com.example.ui.viewmodel.PlayingMedia
@@ -124,6 +126,7 @@ class TvMainActivity : ComponentActivity() {
 
                 var selectedTab by remember { mutableStateOf(MainTab.HOME) }
                 var showSettings by remember { mutableStateOf(false) }
+                var searchQuery by remember { mutableStateOf("") }
 
                 val channels by viewModel.channels.collectAsStateWithLifecycle()
                 val movies by viewModel.movies.collectAsStateWithLifecycle()
@@ -138,10 +141,35 @@ class TvMainActivity : ComponentActivity() {
                 val activePlaylist by viewModel.activePlaylist.collectAsStateWithLifecycle()
                 val currentlyPlaying by viewModel.currentlyPlaying.collectAsStateWithLifecycle()
                 val mediaDetail by viewModel.mediaDetail.collectAsStateWithLifecycle()
+                val recordings by viewModel.recordings.collectAsStateWithLifecycle()
 
                 var autoplay by remember { mutableStateOf(true) }
 
                 Box(modifier = Modifier.fillMaxSize().background(TvBg)) {
+                    // ترتيب أولوية زر الرجوع بالريموت — خطوة بخطوة (نفس منطق الهاتف MainActivity.kt:331)،
+                    // بدل السلوك الافتراضي الذي كان يُنهي التطبيق مباشرة من أي شاشة:
+                    // مشغّل مفتوح -> يغلق المشغّل فقط | تفاصيل فيلم/مسلسل -> تُغلق | الإعدادات -> تُغلق
+                    // | تبويب غير الرئيسية -> يعود للرئيسية | الرئيسية -> السلوك الافتراضي للنظام (خروج)
+                    androidx.activity.compose.BackHandler(enabled = currentlyPlaying != null) {
+                        viewModel.stopMedia()
+                    }
+                    androidx.activity.compose.BackHandler(enabled = currentlyPlaying == null && mediaDetail != null) {
+                        viewModel.closeMediaDetail()
+                    }
+                    androidx.activity.compose.BackHandler(enabled = currentlyPlaying == null && mediaDetail == null && showSettings) {
+                        showSettings = false
+                    }
+                    androidx.activity.compose.BackHandler(
+                        enabled = currentlyPlaying == null && mediaDetail == null && !showSettings && searchQuery.isNotBlank()
+                    ) {
+                        searchQuery = ""
+                    }
+                    androidx.activity.compose.BackHandler(
+                        enabled = currentlyPlaying == null && mediaDetail == null && !showSettings && searchQuery.isBlank() && selectedTab != MainTab.HOME
+                    ) {
+                        selectedTab = MainTab.HOME
+                    }
+
                     Row(modifier = Modifier.fillMaxSize()) {
                         com.example.tv.ui.components.TvNavRail(
                             selectedTab = selectedTab,
@@ -149,7 +177,34 @@ class TvMainActivity : ComponentActivity() {
                             onOpenSettings = { showSettings = true }
                         )
 
-                        Box(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            com.example.tv.ui.components.TvTopBar(
+                                adminUrl = ADMIN_URL,
+                                searchQuery = searchQuery,
+                                onSearchQueryChange = { searchQuery = it },
+                                onLogout = { viewModel.logoutUser() }
+                            )
+
+                            Box(modifier = Modifier.weight(1f)) {
+                                if (searchQuery.isNotBlank()) {
+                                    TvSearchResultsScreen(
+                                        query = searchQuery,
+                                        channels = channels,
+                                        movies = movies,
+                                        series = series,
+                                        onPlayChannel = { ch ->
+                                            viewModel.playMedia(
+                                                PlayingMedia(
+                                                    id = ch.id, title = ch.name, streamUrl = ch.streamUrl,
+                                                    posterUrl = ch.logoUrl, category = ch.category, type = "LIVE",
+                                                    channelList = channels
+                                                )
+                                            )
+                                        },
+                                        onMovieClick = { viewModel.openMovieDetail(it) },
+                                        onSeriesClick = { viewModel.openSeriesDetail(it) }
+                                    )
+                                } else {
                             when (selectedTab) {
                                 MainTab.HOME -> TvHomeScreen(
                                     channels = channels,
@@ -174,6 +229,14 @@ class TvMainActivity : ComponentActivity() {
                                                 posterUrl = h.posterUrl, type = h.itemType, startPositionMs = h.progressMs
                                             )
                                         )
+                                    },
+                                    onPlayMovie = { mov ->
+                                        viewModel.playMedia(
+                                            PlayingMedia(
+                                                id = mov.id, title = mov.title, streamUrl = mov.streamUrl,
+                                                posterUrl = mov.posterUrl, category = mov.category, type = "MOVIE"
+                                            )
+                                        )
                                     }
                                 )
 
@@ -181,6 +244,7 @@ class TvMainActivity : ComponentActivity() {
                                     channels = channels,
                                     categories = liveCategories,
                                     onLoadCategoryStreams = { viewModel.loadStreamsByCategory(it, "live") },
+                                    onFetchEpg = { ch -> viewModel.fetchShortEpgForChannel(ch) },
                                     onPlayChannel = { ch ->
                                         viewModel.playMedia(
                                             PlayingMedia(
@@ -189,6 +253,11 @@ class TvMainActivity : ComponentActivity() {
                                                 channelList = channels
                                             )
                                         )
+                                    },
+                                    isChannelRecording = { id -> viewModel.isChannelRecording(id) },
+                                    onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
+                                    onStopRecording = { ch ->
+                                        viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
                                     }
                                 )
 
@@ -223,13 +292,33 @@ class TvMainActivity : ComponentActivity() {
                                     }
                                 )
 
+                                MainTab.RECORDINGS -> TvRecordingsScreen(
+                                    recordings = recordings,
+                                    onPlayRecording = { rec ->
+                                        viewModel.playMedia(
+                                            PlayingMedia(
+                                                id = "rec_${rec.id}",
+                                                title = rec.programTitle.ifBlank { rec.channelName },
+                                                streamUrl = "file://${rec.filePath}",
+                                                type = "MOVIE"
+                                            )
+                                        )
+                                    },
+                                    onStopRecording = { viewModel.stopRecording(it.id) },
+                                    onDeleteRecording = { viewModel.deleteRecording(it) }
+                                )
+
                                 MainTab.USER_ACCOUNT -> TvProfileScreen(
                                     account = account,
                                     playlists = playlists,
                                     onSelectPlaylist = { viewModel.selectPlaylist(it) },
                                     onCheckActivation = { viewModel.checkSubscription() },
+                                    onContentUpdate = { viewModel.importAdminXtreamSubscription() },
+                                    onAddNewPlaylist = { openUrl("https://app.flixplayer.pro/playlists.php?type=activate") },
                                     onLogout = { viewModel.logoutUser() }
                                 )
+                            }
+                                }
                             }
                         }
                     }
@@ -241,6 +330,8 @@ class TvMainActivity : ComponentActivity() {
                             series = detail.series,
                             episodes = detail.episodes,
                             isFavorite = isFav,
+                            genre = detail.genre,
+                            cast = detail.cast,
                             onClose = { viewModel.closeMediaDetail() },
                             onPlayMovie = { mov ->
                                 viewModel.playMedia(
@@ -298,7 +389,7 @@ class TvMainActivity : ComponentActivity() {
                     ) {
                         currentlyPlaying?.let { media ->
                             androidx.compose.runtime.key(media.streamUrl) {
-                                ExoPlayerView(
+                                TvPlayerView(
                                     mediaUrl = media.streamUrl,
                                     title = media.title,
                                     type = media.type,

@@ -1,6 +1,7 @@
 package com.example.tv.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +35,13 @@ import com.example.tv.theme.TvTextGray
 import com.example.tv.theme.TvTextWhite
 import com.example.tv.ui.components.TvFocusable
 
-/** شبكة عامة تُستخدم لكل من Movies وSeries — تصنيفات على اليسار + شبكة ملصقات على اليمين. */
+private enum class TvSortOption(val label: String) {
+    DEFAULT("Default"),
+    TOP_RATED("Top Rated"),
+    NAME_AZ("Name A-Z")
+}
+
+/** شبكة عامة تُستخدم لكل من Movies وSeries — تصنيفات على اليسار + فرز/Reset أعلى شبكة الملصقات. */
 @Composable
 private fun <T> TvGridScreen(
     items: List<T>,
@@ -42,9 +49,19 @@ private fun <T> TvGridScreen(
     onLoadCategoryStreams: (String) -> Unit,
     posterOf: (T) -> String,
     titleOf: (T) -> String,
+    ratingOf: (T) -> String,
     onItemClick: (T) -> Unit
 ) {
     var selectedCategoryId by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    var sortOption by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(TvSortOption.DEFAULT) }
+
+    val sortedItems = androidx.compose.runtime.remember(items, sortOption) {
+        when (sortOption) {
+            TvSortOption.DEFAULT -> items
+            TvSortOption.TOP_RATED -> items.sortedByDescending { ratingOf(it).toDoubleOrNull() ?: 0.0 }
+            TvSortOption.NAME_AZ -> items.sortedBy { titleOf(it).lowercase() }
+        }
+    }
 
     Row(modifier = Modifier.fillMaxSize().background(TvBg)) {
         LazyColumn(
@@ -83,23 +100,60 @@ private fun <T> TvGridScreen(
             }
         }
 
-        if (items.isEmpty()) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)
             ) {
-                Text("No content in this category", color = TvTextGray, fontSize = 14.sp)
+                TvSortOption.values().forEach { option ->
+                    val active = sortOption == option
+                    TvFocusable(
+                        onClick = { sortOption = option },
+                        shape = RoundedCornerShape(14.dp)
+                    ) { _ ->
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .background(if (active) TvRed else TvPanel, RoundedCornerShape(14.dp))
+                                .padding(horizontal = 14.dp, vertical = 7.dp)
+                        ) {
+                            Text(option.label, color = if (active) TvTextWhite else TvTextGray, fontSize = 12.sp)
+                        }
+                    }
+                }
+                if (selectedCategoryId != null || sortOption != TvSortOption.DEFAULT) {
+                    TvFocusable(
+                        onClick = {
+                            selectedCategoryId = null
+                            sortOption = TvSortOption.DEFAULT
+                        },
+                        shape = RoundedCornerShape(14.dp)
+                    ) { _ ->
+                        androidx.compose.foundation.layout.Box(modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)) {
+                            Text("✕ Reset Filters", color = TvTextGray, fontSize = 12.sp)
+                        }
+                    }
+                }
             }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 150.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(items) { it2 ->
-                    TvPosterCard(title = titleOf(it2), imageUrl = posterOf(it2)) { onItemClick(it2) }
+
+            if (sortedItems.isEmpty()) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No content in this category", color = TvTextGray, fontSize = 14.sp)
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(sortedItems) { it2 ->
+                        TvPosterCard(title = titleOf(it2), imageUrl = posterOf(it2)) { onItemClick(it2) }
+                    }
                 }
             }
         }
@@ -119,6 +173,7 @@ fun TvMoviesScreen(
         onLoadCategoryStreams = onLoadCategoryStreams,
         posterOf = { it.posterUrl },
         titleOf = { it.title },
+        ratingOf = { it.rating },
         onItemClick = onMovieClick
     )
 }
@@ -136,6 +191,7 @@ fun TvSeriesScreen(
         onLoadCategoryStreams = onLoadCategoryStreams,
         posterOf = { it.posterUrl },
         titleOf = { it.title },
+        ratingOf = { it.rating },
         onItemClick = onSeriesClick
     )
 }

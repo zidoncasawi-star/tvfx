@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,8 +59,15 @@ fun TvProfileScreen(
     playlists: List<PlaylistEntity>,
     onSelectPlaylist: (Long) -> Unit,
     onCheckActivation: () -> Unit,
+    onContentUpdate: () -> Unit = {},
+    onAddNewPlaylist: () -> Unit = {},
     onLogout: () -> Unit
 ) {
+    val expiryText = remember(account.expiresAt) {
+        if (account.expiresAt > 0L) {
+            java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.ENGLISH).format(java.util.Date(account.expiresAt))
+        } else "—"
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,6 +115,14 @@ fun TvProfileScreen(
         Column(modifier = Modifier.width(560.dp)) {
             TvSettingsRow("Email") { Text(account.email.ifBlank { "—" }, color = TvTextGray, fontSize = 13.sp) }
             TvSettingsRow("Activation Code") { Text(account.activationCode, color = TvTextWhite, fontSize = 13.sp) }
+            TvSettingsRow("Subscription Status") {
+                Text(
+                    if (account.isActivated) "Active" else "Waiting",
+                    color = if (account.isActivated) androidx.compose.ui.graphics.Color(0xFF2ECC71) else TvTextGray,
+                    fontSize = 13.sp
+                )
+            }
+            TvSettingsRow("Expires On") { Text(expiryText, color = TvTextGray, fontSize = 13.sp) }
             TvSettingsRow("Xtream Server") { Text(if (account.xtreamHost.isNotBlank()) "Connected" else "Not configured", color = TvTextGray, fontSize = 13.sp) }
 
             if (playlists.size > 1) {
@@ -132,9 +148,13 @@ fun TvProfileScreen(
             }
         }
 
+        Spacer(Modifier.height(16.dp))
+        TvOutlineButton(text = "+ Add New Playlist", onClick = onAddNewPlaylist)
+
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TvOutlineButton(text = "🔄 Check Activation Status", onClick = onCheckActivation)
+            TvOutlineButton(text = "🔄 Content Update", onClick = onContentUpdate)
             TvPrimaryButton(text = "Logout", onClick = onLogout)
         }
     }
