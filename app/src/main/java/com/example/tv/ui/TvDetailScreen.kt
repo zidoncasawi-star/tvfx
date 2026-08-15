@@ -204,7 +204,7 @@ fun TvDetailScreen(
                     )
                     if (seasons.isNotEmpty()) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            itemsIndexed(seasons) { index, s ->
+                            itemsIndexed(seasons, key = { _, s -> s }) { index, s ->
                                 val active = s == selectedSeason
                                 TvFocusable(
                                     modifier = if (index == 0) {
@@ -228,7 +228,7 @@ fun TvDetailScreen(
                         Spacer(Modifier.height(12.dp))
                     }
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        itemsIndexed(episodes.filter { it.seasonNum == selectedSeason }) { index, ep ->
+                        itemsIndexed(episodes.filter { it.seasonNum == selectedSeason }, key = { _, ep -> ep.id }) { index, ep ->
                             TvFocusable(
                                 modifier = Modifier
                                     .fillMaxWidth()

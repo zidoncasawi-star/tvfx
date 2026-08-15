@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -113,8 +114,9 @@ fun TvLiveTvScreen(
                 .fillMaxHeight()
                 .background(TvPanel)
                 .padding(vertical = 16.dp, horizontal = 10.dp)
+                .focusRestorer()
         ) {
-            items(categories) { cat ->
+            items(categories, key = { it.id }) { cat ->
                 val active = selectedCategoryId == cat.id
                 TvFocusable(
                     modifier = Modifier.fillMaxWidth(),
@@ -156,8 +158,8 @@ fun TvLiveTvScreen(
                     Text("Loading channels...", color = TvTextGray, fontSize = 13.sp)
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
-                    items(filtered) { ch ->
+                LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp).focusRestorer()) {
+                    items(filtered, key = { it.id }) { ch ->
                         TvChannelRow(
                             channel = ch,
                             isPreviewing = previewChannel?.id == ch.id,
@@ -248,7 +250,7 @@ fun TvLiveTvScreen(
                     Text("No program guide data available for this channel.", color = TvTextGray, fontSize = 12.sp)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(currentEpg) { entry ->
+                        items(currentEpg, key = { "${it.title}_${it.start}" }) { entry ->
                             TvEpgRow(
                                 entry = entry,
                                 isRecording = isChannelRecording(channel.id) && entry.isNowPlaying,

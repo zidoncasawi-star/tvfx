@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -158,6 +159,9 @@ fun TvHomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(TvBg)
+            // بدون هذا، العودة (Back) من تفاصيل فيلم/مسلسل مفتوح من الرئيسية تفقد مكان التركيز
+            // السابق تماماً بدل العودة لنفس الملصق الذي فُتح منه
+            .focusRestorer()
     ) {
         item {
             TvHeroBanner(
@@ -178,7 +182,7 @@ fun TvHomeScreen(
         if (watchHistory.isNotEmpty()) {
             item {
                 TvContentRow(title = "Continue Watching") {
-                    items(watchHistory.take(20)) { h ->
+                    items(watchHistory.take(20), key = { it.itemId }) { h ->
                         TvHistoryCard(h) { onResumeHistory(h) }
                     }
                 }
@@ -188,18 +192,18 @@ fun TvHomeScreen(
         // القنوات المباشرة عمداً لا تظهر في الصفحة الرئيسية — نفس سلوك سطح المكتب تماماً؛
         // تبقى قابلة للوصول فقط من تبويب "Live TV" نفسه أو من نتائج البحث الشامل
         movieCategoryRows.forEach { (categoryName, categoryItems) ->
-            item {
+            item(key = "mov_row_$categoryName") {
                 TvContentRow(title = categoryName) {
-                    items(categoryItems) { m ->
+                    items(categoryItems, key = { it.id }) { m ->
                         TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) }
                     }
                 }
             }
         }
         seriesCategoryRows.forEach { (categoryName, categoryItems) ->
-            item {
+            item(key = "ser_row_$categoryName") {
                 TvContentRow(title = categoryName) {
-                    items(categoryItems) { s ->
+                    items(categoryItems, key = { it.id }) { s ->
                         TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) }
                     }
                 }
@@ -315,7 +319,8 @@ private fun TvContentRow(title: String, content: androidx.compose.foundation.laz
         )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 40.dp)
+            contentPadding = PaddingValues(horizontal = 40.dp),
+            modifier = Modifier.focusRestorer()
         ) {
             content()
         }

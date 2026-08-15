@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +52,7 @@ private fun <T> TvGridScreen(
     titleOf: (T) -> String,
     ratingOf: (T) -> String,
     categoryOf: (T) -> String,
+    idOf: (T) -> String,
     onItemClick: (T) -> Unit
 ) {
     var selectedCategoryId by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
@@ -72,13 +74,17 @@ private fun <T> TvGridScreen(
 
     Row(modifier = Modifier.fillMaxSize().background(TvBg)) {
         LazyColumn(
+            // بدون focusRestorer، عند العودة من شاشة التفاصيل (Back) لا يعرف نظام التركيز أي عنصر
+            // كان مركَّزاً عليه هنا سابقاً، فيقفز التركيز لمكان عشوائي آخر (أو حتى لتبويب مختلف)
+            // بدل العودة لنفس التصنيف الذي كان محدَّداً — هذا ما كان يبدو وكأن "التحديد يقفز لصفحة أخرى"
             modifier = Modifier
                 .width(240.dp)
                 .fillMaxHeight()
                 .background(TvPanel)
                 .padding(vertical = 16.dp, horizontal = 10.dp)
+                .focusRestorer()
         ) {
-            items(categories) { cat ->
+            items(categories, key = { it.id }) { cat ->
                 val active = selectedCategoryId == cat.id
                 TvFocusable(
                     modifier = Modifier.fillMaxWidth(),
@@ -156,9 +162,9 @@ private fun <T> TvGridScreen(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
                     horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
                     verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().focusRestorer()
                 ) {
-                    items(sortedItems) { it2 ->
+                    items(sortedItems, key = { idOf(it) }) { it2 ->
                         TvPosterCard(title = titleOf(it2), imageUrl = posterOf(it2)) { onItemClick(it2) }
                     }
                 }
@@ -182,6 +188,7 @@ fun TvMoviesScreen(
         titleOf = { it.title },
         ratingOf = { it.rating },
         categoryOf = { it.category },
+        idOf = { it.id },
         onItemClick = onMovieClick
     )
 }
@@ -201,6 +208,7 @@ fun TvSeriesScreen(
         titleOf = { it.title },
         ratingOf = { it.rating },
         categoryOf = { it.category },
+        idOf = { it.id },
         onItemClick = onSeriesClick
     )
 }
@@ -228,10 +236,10 @@ fun TvFavoritesScreen(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize().background(TvBg)
+        modifier = Modifier.fillMaxSize().background(TvBg).focusRestorer()
     ) {
-        items(favChannels) { ch -> TvPosterCard(title = ch.name, imageUrl = ch.logoUrl, isChannel = true) { onPlayChannel(ch) } }
-        items(favMovies) { m -> TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) } }
-        items(favSeries) { s -> TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) } }
+        items(favChannels, key = { "ch_${it.id}" }) { ch -> TvPosterCard(title = ch.name, imageUrl = ch.logoUrl, isChannel = true) { onPlayChannel(ch) } }
+        items(favMovies, key = { "mov_${it.id}" }) { m -> TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) } }
+        items(favSeries, key = { "ser_${it.id}" }) { s -> TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) } }
     }
 }

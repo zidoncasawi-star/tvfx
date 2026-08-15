@@ -67,7 +67,7 @@ fun TvSearchResultsScreen(
             if (matchedChannels.isNotEmpty()) {
                 item {
                     SearchResultRow(title = "Live TV") {
-                        items(matchedChannels) { ch ->
+                        items(matchedChannels, key = { it.id }) { ch ->
                             TvPosterCard(title = ch.name, imageUrl = ch.logoUrl, isChannel = true) { onPlayChannel(ch) }
                         }
                     }
@@ -76,7 +76,7 @@ fun TvSearchResultsScreen(
             if (matchedMovies.isNotEmpty()) {
                 item {
                     SearchResultRow(title = "Movies") {
-                        items(matchedMovies) { m ->
+                        items(matchedMovies, key = { it.id }) { m ->
                             TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) }
                         }
                     }
@@ -85,7 +85,7 @@ fun TvSearchResultsScreen(
             if (matchedSeries.isNotEmpty()) {
                 item {
                     SearchResultRow(title = "Series") {
-                        items(matchedSeries) { s ->
+                        items(matchedSeries, key = { it.id }) { s ->
                             TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) }
                         }
                     }

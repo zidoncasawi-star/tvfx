@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,7 +54,7 @@ fun TvRecordingsScreen(
                 Text("No recordings yet. Press Record on a live channel to start.", color = TvTextGray, fontSize = 14.sp)
             }
         } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.focusRestorer()) {
                 items(recordings, key = { it.id }) { rec ->
                     TvRecordingRow(rec, onPlayRecording, onStopRecording, onDeleteRecording)
                 }
