@@ -432,6 +432,11 @@ class TvMainActivity : ComponentActivity() {
                                                 seriesTitle = media.seriesTitle
                                             )
                                         )
+                                    },
+                                    isChannelRecording = { id -> viewModel.isChannelRecording(id) },
+                                    onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
+                                    onStopRecording = { ch ->
+                                        viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
                                     }
                                 )
                             }

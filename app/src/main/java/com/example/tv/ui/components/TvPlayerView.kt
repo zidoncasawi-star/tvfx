@@ -91,6 +91,9 @@ fun TvPlayerView(
     onProgressUpdate: (positionMs: Long, durationMs: Long) -> Unit = { _, _ -> },
     onChannelSelect: (ChannelEntity) -> Unit = {},
     onEpisodeSelect: (Episode) -> Unit = {},
+    isChannelRecording: (String) -> Boolean = { false },
+    onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
+    onStopRecording: (ChannelEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -112,6 +115,12 @@ fun TvPlayerView(
     val playPauseFocusRequester = remember { FocusRequester() }
     val rootFocusRequester = remember { FocusRequester() }
     val channelDrawerFirstItemFocusRequester = remember { FocusRequester() }
+
+    // القناة المباشرة الحالية (لزر التسجيل في شريط التحكم العلوي) — نفس أسلوب المطابقة
+    // المستخدم في مشغّل الهاتف (ExoPlayerView) لإيجاد القناة من رابط البث الحالي
+    val currentChannel = remember(channelList, mediaUrl) {
+        channelList.firstOrNull { it.streamUrl == mediaUrl }
+    }
 
     // بدون تركيز أوّلي صريح عند فتح قائمة تبديل القنوات، يبقى التركيز منطقياً على زر الفتح
     // (خلف القائمة الآن) فتضيع كل ضغطات D-pad ولا يمكن التمرير داخل القائمة أو اختيار قناة
@@ -294,8 +303,13 @@ fun TvPlayerView(
         }
     }
 
-    // إخفاء تلقائي للتحكم بعد 6 ثوان أثناء التشغيل — أطول قليلاً من الهاتف لأن الريموت أبطأ من اللمس
-    LaunchedEffect(showControls, isPlaying) {
+    // كان العداد الذي يُخفي التحكم بعد 6 ثوان يبدأ لحظة ظهور الأزرار فقط ولا يُعاد أبداً — فإن
+    // استغرق المستخدم أكثر من 6 ثوان يتنقّل بين الأزرار (بدون الضغط على أيّ منها)، تختفي كل
+    // الأزرار فجأة من تحت تركيزه فيبدو التنقّل "متقطّعاً" ويضطر لإعادة الضغط لإظهارها من جديد.
+    // interactionTick يُزاد مع كل ضغطة ريموت (انظر onKeyEvent أدناه) فيُعيد العدّاد من جديد،
+    // فلا تختفي الأزرار إلا بعد 6 ثوان من الخمول الفعلي الحقيقي
+    var interactionTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(showControls, isPlaying, interactionTick) {
         if (showControls && isPlaying) {
             delay(6000)
             showControls = false
@@ -321,6 +335,11 @@ fun TvPlayerView(
             .focusRequester(rootFocusRequester)
             .focusable()
             .onKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown && event.key != Key.Back) {
+                    // أي ضغطة تُعيد عدّاد الإخفاء التلقائي من جديد طالما الأزرار ظاهرة ويتنقّل
+                    // المستخدم بينها فعلياً — هذا ما يمنع اختفاءها المفاجئ أثناء التنقّل المستمر
+                    interactionTick++
+                }
                 // أي ضغطة D-pad (باستثناء الرجوع الذي تُديره TvMainActivity) تُظهر التحكم مجدداً
                 if (event.type == KeyEventType.KeyDown && !showControls &&
                     event.key != Key.Back
@@ -449,6 +468,18 @@ fun TvPlayerView(
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (type == "LIVE" && currentChannel != null) {
+                            val recording = isChannelRecording(currentChannel.id)
+                            TvIconButton(
+                                icon = if (recording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
+                                contentDescription = if (recording) "Stop recording" else "Record",
+                                active = recording,
+                                onClick = {
+                                    if (recording) onStopRecording(currentChannel)
+                                    else onStartRecording(currentChannel, currentChannel.name, 120)
+                                }
+                            )
+                        }
                         TvIconButton(
                             icon = Icons.Default.Timer,
                             contentDescription = "Sleep timer",
