@@ -84,16 +84,25 @@ fun TvSettingsScreen(
     onOpenTerms: () -> Unit,
     onOpenPrivacy: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(TvBg)
             .verticalScroll(rememberScrollState())
-            .padding(40.dp)
+            .padding(40.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
-        Text("Settings", color = TvTextWhite, fontWeight = FontWeight.Black, fontSize = 26.sp)
+    Column(modifier = Modifier.width(640.dp)) {
+        Text(
+            "Settings",
+            color = TvTextWhite,
+            fontWeight = FontWeight.Black,
+            fontSize = 26.sp,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
 
-        Column(modifier = Modifier.width(560.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             TvGroupTitle("Playback")
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
@@ -130,5 +139,6 @@ fun TvSettingsScreen(
             Spacer(Modifier.height(30.dp))
             Text("FXTV Player TV · v1.0", color = TvTextGray, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
+    }
     }
 }

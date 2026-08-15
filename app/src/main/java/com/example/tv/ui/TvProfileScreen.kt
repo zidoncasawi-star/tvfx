@@ -68,13 +68,15 @@ fun TvProfileScreen(
             java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.ENGLISH).format(java.util.Date(account.expiresAt))
         } else "—"
     }
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(TvBg)
             .verticalScroll(rememberScrollState())
-            .padding(40.dp)
+            .padding(40.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
+    Column(modifier = Modifier.width(640.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier.size(64.dp).clip(CircleShape).background(TvRed),
@@ -112,7 +114,7 @@ fun TvProfileScreen(
         }
 
         Spacer(Modifier.height(10.dp))
-        Column(modifier = Modifier.width(560.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             TvSettingsRow("Email") { Text(account.email.ifBlank { "—" }, color = TvTextGray, fontSize = 13.sp) }
             TvSettingsRow("Activation Code") { Text(account.activationCode, color = TvTextWhite, fontSize = 13.sp) }
             TvSettingsRow("Subscription Status") {
@@ -157,5 +159,6 @@ fun TvProfileScreen(
             TvOutlineButton(text = "🔄 Content Update", onClick = onContentUpdate)
             TvPrimaryButton(text = "Logout", onClick = onLogout)
         }
+    }
     }
 }
