@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -69,6 +72,15 @@ fun TvDetailScreen(
     val seasons = remember(episodes) { episodes.map { it.seasonNum }.distinct().sorted() }
     var selectedSeason by remember(seasons) { mutableStateOf(seasons.firstOrNull() ?: 1) }
 
+    // بدون تركيز أوّلي صريح، لا يوجد أي عنصر مركَّز عند ظهور الشاشة فتضيع كل ضغطات D-pad
+    // (الأسهم لا تحرّك شيئاً وزر OK لا يفعل شيئاً) — نفس السبب الجذري الذي عولج سابقاً في
+    // مشغّل التلفاز. هنا نُركّز زر "▶ Play" مباشرة إن وُجد (فيلم)، وإلا زر الإغلاق (مسلسل).
+    val initialFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(movie?.id, series?.id) {
+        kotlinx.coroutines.delay(80)
+        runCatching { initialFocusRequester.requestFocus() }
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(TvBg)) {
         if (backdrop.isNotBlank()) {
             AsyncImage(
@@ -89,7 +101,10 @@ fun TvDetailScreen(
         TvOutlineButton(
             text = "✕ Close",
             onClick = onClose,
-            modifier = Modifier.align(Alignment.TopEnd).padding(24.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 36.dp, end = 36.dp)
+                .then(if (movie == null) Modifier.focusRequester(initialFocusRequester) else Modifier)
         )
 
         Row(
@@ -133,7 +148,11 @@ fun TvDetailScreen(
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (movie != null) {
-                        TvPrimaryButton(text = "▶ Play", onClick = { onPlayMovie(movie) })
+                        TvPrimaryButton(
+                            text = "▶ Play",
+                            onClick = { onPlayMovie(movie) },
+                            modifier = Modifier.focusRequester(initialFocusRequester)
+                        )
                     }
                     TvOutlineButton(
                         text = if (isFavorite) "♥ In Favorites" else "♡ Add to Favorites",

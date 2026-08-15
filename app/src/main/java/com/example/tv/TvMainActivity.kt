@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -362,6 +363,15 @@ class TvMainActivity : ComponentActivity() {
                     }
 
                     if (showSettings) {
+                        // بدون تركيز أوّلي صريح هنا، هذه النافذة العائمة (overlay) لا تملك أي عنصر
+                        // مركَّز عند ظهورها (بخلاف تبديل التبويبات العادي حيث يُحافَظ على تركيز
+                        // الشريط الجانبي) فتضيع كل ضغطات D-pad — نفس السبب الجذري الذي كان يمنع
+                        // فتح المشغّل من شاشة التفاصيل
+                        val settingsCloseFocusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+                        LaunchedEffect(showSettings) {
+                            kotlinx.coroutines.delay(80)
+                            runCatching { settingsCloseFocusRequester.requestFocus() }
+                        }
                         Box(modifier = Modifier.fillMaxSize()) {
                             TvSettingsScreen(
                                 autoplayEnabled = autoplay,
@@ -376,7 +386,10 @@ class TvMainActivity : ComponentActivity() {
                             TvOutlineButton(
                                 text = "✕ Close",
                                 onClick = { showSettings = false },
-                                modifier = Modifier.align(Alignment.TopEnd).padding(24.dp)
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 36.dp, end = 36.dp)
+                                    .focusRequester(settingsCloseFocusRequester)
                             )
                         }
                     }
