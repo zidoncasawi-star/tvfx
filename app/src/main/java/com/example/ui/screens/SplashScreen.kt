@@ -4,12 +4,14 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -22,10 +24,13 @@ import com.example.ui.theme.NetflixRed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private const val SPLASH_DURATION_MS = 2500
+
 @Composable
 fun SplashScreen(onFinish: () -> Unit) {
     val scale = remember { Animatable(0.6f) }
     val alpha = remember { Animatable(0f) }
+    val progress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         launch {
@@ -40,7 +45,13 @@ fun SplashScreen(onFinish: () -> Unit) {
                 animationSpec = tween(1000)
             )
         }
-        delay(2500)
+        launch {
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(SPLASH_DURATION_MS, easing = LinearEasing)
+            )
+        }
+        delay(SPLASH_DURATION_MS.toLong())
         onFinish()
     }
 
@@ -84,9 +95,9 @@ fun SplashScreen(onFinish: () -> Unit) {
                     letterSpacing = 4.sp
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = "Premium Streaming Experience",
                 color = Color.White.copy(alpha = 0.5f * alpha.value),
@@ -95,19 +106,37 @@ fun SplashScreen(onFinish: () -> Unit) {
                 modifier = Modifier.alpha(alpha.value)
             )
         }
-        
-        Box(
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 64.dp)
                 .alpha(alpha.value)
         ) {
             Text(
-                text = "جاري التحميل...",
-                color = NetflixRed,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                text = "Loading...",
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 0.5.sp
             )
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Color.White.copy(alpha = 0.15f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress.value)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(NetflixRed)
+                )
+            }
         }
     }
 }
