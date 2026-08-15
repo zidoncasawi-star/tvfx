@@ -10,6 +10,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -110,6 +111,16 @@ fun TvPlayerView(
 
     val playPauseFocusRequester = remember { FocusRequester() }
     val rootFocusRequester = remember { FocusRequester() }
+    val channelDrawerFirstItemFocusRequester = remember { FocusRequester() }
+
+    // بدون تركيز أوّلي صريح عند فتح قائمة تبديل القنوات، يبقى التركيز منطقياً على زر الفتح
+    // (خلف القائمة الآن) فتضيع كل ضغطات D-pad ولا يمكن التمرير داخل القائمة أو اختيار قناة
+    LaunchedEffect(showChannelDrawer) {
+        if (showChannelDrawer) {
+            delay(80)
+            runCatching { channelDrawerFirstItemFocusRequester.requestFocus() }
+        }
+    }
 
     // إخفاء أشرطة النظام فقط — التلفاز أفقي دائماً بلا حاجة لتدوير الشاشة
     DisposableEffect(Unit) {
@@ -589,14 +600,16 @@ fun TvPlayerView(
                     }
                     Spacer(Modifier.height(10.dp))
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(channelList) { ch ->
+                        itemsIndexed(channelList) { index, ch ->
                             val isCurrent = ch.streamUrl == mediaUrl
                             TvFocusable(
                                 onClick = {
                                     onChannelSelect(ch)
                                     showChannelDrawer = false
                                 },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(if (index == 0) Modifier.focusRequester(channelDrawerFirstItemFocusRequester) else Modifier),
                                 shape = RoundedCornerShape(8.dp)
                             ) { focused ->
                                 Row(
