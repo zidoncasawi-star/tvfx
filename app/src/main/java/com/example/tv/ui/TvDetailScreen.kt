@@ -72,9 +72,17 @@ fun TvDetailScreen(
     val seasons = remember(episodes) { episodes.map { it.seasonNum }.distinct().sorted() }
     var selectedSeason by remember(seasons) { mutableStateOf(seasons.firstOrNull() ?: 1) }
 
+    // زر "تشغيل" للمسلسل يشغّل أول حلقة في الموسم المحدَّد حالياً (أو أول حلقة متاحة إن لم توجد
+    // حلقات في هذا الموسم تحديداً) — تماماً مثل زر Play في صفحة تفاصيل الفيلم
+    val firstPlayableEpisode = remember(episodes, selectedSeason) {
+        episodes.firstOrNull { it.seasonNum == selectedSeason } ?: episodes.firstOrNull()
+    }
+
     // بدون تركيز أوّلي صريح، لا يوجد أي عنصر مركَّز عند ظهور الشاشة فتضيع كل ضغطات D-pad
     // (الأسهم لا تحرّك شيئاً وزر OK لا يفعل شيئاً) — نفس السبب الجذري الذي عولج سابقاً في
-    // مشغّل التلفاز. هنا نُركّز زر "▶ Play" مباشرة إن وُجد (فيلم)، وإلا زر الإغلاق (مسلسل).
+    // مشغّل التلفاز. نُركّز زر "▶ Play" دائماً إن أمكن تشغيل شيء (فيلم أو أول حلقة مسلسل)،
+    // وإلا نتراجع لزر الإغلاق حتى لا تبقى الشاشة بلا أي عنصر قابل للتركيز مطلقاً
+    val canPlay = movie != null || firstPlayableEpisode != null
     val initialFocusRequester = remember { FocusRequester() }
     LaunchedEffect(movie?.id, series?.id) {
         kotlinx.coroutines.delay(80)
@@ -104,7 +112,7 @@ fun TvDetailScreen(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 36.dp, end = 36.dp)
-                .then(if (movie == null) Modifier.focusRequester(initialFocusRequester) else Modifier)
+                .then(if (!canPlay) Modifier.focusRequester(initialFocusRequester) else Modifier)
         )
 
         Row(
@@ -153,6 +161,12 @@ fun TvDetailScreen(
                             onClick = { onPlayMovie(movie) },
                             modifier = Modifier.focusRequester(initialFocusRequester)
                         )
+                    } else if (firstPlayableEpisode != null) {
+                        TvPrimaryButton(
+                            text = "▶ Play",
+                            onClick = { onPlayEpisode(firstPlayableEpisode) },
+                            modifier = Modifier.focusRequester(initialFocusRequester)
+                        )
                     }
                     TvOutlineButton(
                         text = if (isFavorite) "♥ In Favorites" else "♡ Add to Favorites",
@@ -169,7 +183,14 @@ fun TvDetailScreen(
                         .background(TvCard.copy(alpha = 0.7f), RoundedCornerShape(14.dp))
                         .padding(16.dp)
                 ) {
-                    if (seasons.size > 1) {
+                    Text(
+                        "Episodes",
+                        color = TvTextWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    if (seasons.isNotEmpty()) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(seasons) { s ->
                                 val active = s == selectedSeason
