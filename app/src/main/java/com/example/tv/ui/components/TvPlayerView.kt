@@ -122,6 +122,16 @@ fun TvPlayerView(
         channelList.firstOrNull { it.streamUrl == mediaUrl }
     }
 
+    // تبديل سريع للقناة التالية/السابقة عبر زرّي CH+/CH- الفعليّين على الريموت — بدون فتح
+    // قائمة القنوات إطلاقاً، تماماً مثل جهاز استقبال تلفزيوني عادي
+    fun switchChannel(direction: Int) {
+        if (channelList.isEmpty()) return
+        val curIndex = channelList.indexOfFirst { it.streamUrl == mediaUrl }
+        if (curIndex == -1) return
+        val nextIndex = (curIndex + direction + channelList.size) % channelList.size
+        onChannelSelect(channelList[nextIndex])
+    }
+
     // بدون تركيز أوّلي صريح عند فتح قائمة تبديل القنوات، يبقى التركيز منطقياً على زر الفتح
     // (خلف القائمة الآن) فتضيع كل ضغطات D-pad ولا يمكن التمرير داخل القائمة أو اختيار قناة
     LaunchedEffect(showChannelDrawer) {
@@ -335,18 +345,46 @@ fun TvPlayerView(
             .focusRequester(rootFocusRequester)
             .focusable()
             .onKeyEvent { event ->
-                if (event.type == KeyEventType.KeyDown && event.key != Key.Back) {
+                if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+
+                if (event.key != Key.Back) {
                     // أي ضغطة تُعيد عدّاد الإخفاء التلقائي من جديد طالما الأزرار ظاهرة ويتنقّل
                     // المستخدم بينها فعلياً — هذا ما يمنع اختفاءها المفاجئ أثناء التنقّل المستمر
                     interactionTick++
                 }
+
+                // أزرار الريموت الفعلية المخصَّصة للبث المباشر: CH+/CH- لتبديل القناة مباشرة بدون
+                // فتح القائمة، زر REC لتسجيل القناة الحالية فوراً، وزر EPG/Guide لفتح قائمة القنوات
+                if (type == "LIVE") {
+                    when (event.nativeKeyEvent.keyCode) {
+                        android.view.KeyEvent.KEYCODE_CHANNEL_UP -> {
+                            switchChannel(1)
+                            return@onKeyEvent true
+                        }
+                        android.view.KeyEvent.KEYCODE_CHANNEL_DOWN -> {
+                            switchChannel(-1)
+                            return@onKeyEvent true
+                        }
+                        android.view.KeyEvent.KEYCODE_MEDIA_RECORD, android.view.KeyEvent.KEYCODE_PROG_RED -> {
+                            currentChannel?.let { ch ->
+                                if (isChannelRecording(ch.id)) onStopRecording(ch)
+                                else onStartRecording(ch, ch.name, 120)
+                            }
+                            return@onKeyEvent true
+                        }
+                        android.view.KeyEvent.KEYCODE_GUIDE -> {
+                            if (channelList.isNotEmpty()) showChannelDrawer = true
+                            return@onKeyEvent true
+                        }
+                    }
+                }
+
                 // أي ضغطة D-pad (باستثناء الرجوع الذي تُديره TvMainActivity) تُظهر التحكم مجدداً
-                if (event.type == KeyEventType.KeyDown && !showControls &&
-                    event.key != Key.Back
-                ) {
+                if (!showControls && event.key != Key.Back) {
                     showControls = true
-                    true
-                } else false
+                    return@onKeyEvent true
+                }
+                false
             }
     ) {
         AndroidView(
