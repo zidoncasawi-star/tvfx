@@ -14,23 +14,39 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.media.MediaPlayer
 import com.example.R
 import com.example.ui.theme.DarkBackground
 import com.example.ui.theme.NetflixRed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val SPLASH_DURATION_MS = 2500
+// مدة intro.mp3 الفعلية ~9.9 ثانية — شاشة البداية يجب أن تبقى معروضة لمدته الكاملة كي لا يُقطع
+// الصوت في المنتصف؛ شريط التقدّم البصري مضبوط على نفس هذه المدة تماماً ليكتملا معاً
+private const val SPLASH_DURATION_MS = 9900
 
 @Composable
 fun SplashScreen(onFinish: () -> Unit) {
+    val context = LocalContext.current
     val scale = remember { Animatable(0.6f) }
     val alpha = remember { Animatable(0f) }
     val progress = remember { Animatable(0f) }
+
+    DisposableEffect(Unit) {
+        val player = MediaPlayer.create(context, R.raw.intro)
+        player?.start()
+        onDispose {
+            runCatching {
+                if (player?.isPlaying == true) player.stop()
+                player?.release()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         launch {
