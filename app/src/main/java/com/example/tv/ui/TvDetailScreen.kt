@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -88,6 +90,12 @@ fun TvDetailScreen(
         kotlinx.coroutines.delay(80)
         runCatching { initialFocusRequester.requestFocus() }
     }
+
+    // كان الانتقال يميناً من زرّي Play/Favorites (أسفل العمود الأيسر) نحو عمود الحلقات (الذي يبدأ
+    // من أعلى العمود الأيمن) يفشل غالباً — فجوة رأسية كبيرة تمنع البحث المكاني التلقائي من إيجاد
+    // مسار. نُحدِّد وجهة الانتقال يميناً/يساراً صراحة بدل الاعتماد على الهندسة المكانية فقط
+    val favoritesFocusRequester = remember { FocusRequester() }
+    val episodesEntryFocusRequester = remember { FocusRequester() }
 
     Box(modifier = Modifier.fillMaxSize().background(TvBg)) {
         if (backdrop.isNotBlank()) {
@@ -155,22 +163,26 @@ fun TvDetailScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val rightModifier = if (series != null) {
+                        Modifier.focusProperties { right = episodesEntryFocusRequester }
+                    } else Modifier
                     if (movie != null) {
                         TvPrimaryButton(
                             text = "▶ Play",
                             onClick = { onPlayMovie(movie) },
-                            modifier = Modifier.focusRequester(initialFocusRequester)
+                            modifier = Modifier.focusRequester(initialFocusRequester).then(rightModifier)
                         )
                     } else if (firstPlayableEpisode != null) {
                         TvPrimaryButton(
                             text = "▶ Play",
                             onClick = { onPlayEpisode(firstPlayableEpisode) },
-                            modifier = Modifier.focusRequester(initialFocusRequester)
+                            modifier = Modifier.focusRequester(initialFocusRequester).then(rightModifier)
                         )
                     }
                     TvOutlineButton(
                         text = if (isFavorite) "♥ In Favorites" else "♡ Add to Favorites",
-                        onClick = onToggleFavorite
+                        onClick = onToggleFavorite,
+                        modifier = Modifier.focusRequester(favoritesFocusRequester).then(rightModifier)
                     )
                 }
             }
@@ -192,9 +204,14 @@ fun TvDetailScreen(
                     )
                     if (seasons.isNotEmpty()) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(seasons) { s ->
+                            itemsIndexed(seasons) { index, s ->
                                 val active = s == selectedSeason
                                 TvFocusable(
+                                    modifier = if (index == 0) {
+                                        Modifier
+                                            .focusRequester(episodesEntryFocusRequester)
+                                            .focusProperties { left = favoritesFocusRequester }
+                                    } else Modifier,
                                     shape = RoundedCornerShape(18.dp),
                                     onClick = { selectedSeason = s }
                                 ) { _ ->
@@ -211,9 +228,17 @@ fun TvDetailScreen(
                         Spacer(Modifier.height(12.dp))
                     }
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(episodes.filter { it.seasonNum == selectedSeason }) { ep ->
+                        itemsIndexed(episodes.filter { it.seasonNum == selectedSeason }) { index, ep ->
                             TvFocusable(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (index == 0 && seasons.size <= 1) {
+                                            Modifier
+                                                .focusRequester(episodesEntryFocusRequester)
+                                                .focusProperties { left = favoritesFocusRequester }
+                                        } else Modifier
+                                    ),
                                 shape = RoundedCornerShape(8.dp),
                                 onClick = { onPlayEpisode(ep) }
                             ) { _ ->

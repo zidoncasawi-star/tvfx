@@ -12,9 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,60 +84,73 @@ fun TvSettingsScreen(
     onOpenPrivacy: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(TvBg)
-            .verticalScroll(rememberScrollState())
-            .padding(40.dp),
+        modifier = Modifier.fillMaxSize().background(TvBg),
         contentAlignment = Alignment.TopCenter
     ) {
-    Column(modifier = Modifier.width(640.dp)) {
-        Text(
-            "Settings",
-            color = TvTextWhite,
-            fontWeight = FontWeight.Black,
-            fontSize = 26.sp,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            TvGroupTitle("Playback")
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Stream Source", color = TvTextWhite, fontSize = 14.sp)
-                Text(activePlaylistName ?: "Direct from Xtream server", color = TvTextGray, fontSize = 13.sp)
-            }
-            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(TvBorder))
-            TvToggleRow("Autoplay Next Episode", autoplayEnabled, onAutoplayChange)
-
-            TvGroupTitle("App")
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Language", color = TvTextWhite, fontSize = 14.sp)
-                Text("English", color = TvTextGray, fontSize = 13.sp)
-            }
-            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(TvBorder))
-            Spacer(Modifier.height(4.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                TvOutlineButton(text = "Clear Local Cache", onClick = onClearCache, modifier = Modifier.fillMaxWidth())
-                TvOutlineButton(text = "Clear Favorites & History", onClick = onClearFavorites, modifier = Modifier.fillMaxWidth())
-                TvPrimaryButton(text = "Logout", onClick = onLogout, modifier = Modifier.fillMaxWidth())
+        // Modifier.verticalScroll لا يُحرِّك الـ viewport تلقائياً عند تنقّل التركيز بالريموت خارج
+        // حدود الشاشة المرئية (يعمل فقط باللمس/السحب اليدوي) — LazyColumn وحدها تُبقي العنصر
+        // المركَّز ظاهراً دائماً وتُمرِّر تلقائياً، لذا استبدلنا Box+verticalScroll بها هنا
+        LazyColumn(
+            modifier = Modifier.width(640.dp).fillMaxSize().padding(40.dp)
+        ) {
+            item {
+                Text(
+                    "Settings",
+                    color = TvTextWhite,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 26.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
 
-            TvGroupTitle("Legal")
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                TvOutlineButton(text = "Terms and Conditions", onClick = onOpenTerms, modifier = Modifier.fillMaxWidth())
-                TvOutlineButton(text = "Privacy Policy", onClick = onOpenPrivacy, modifier = Modifier.fillMaxWidth())
+            item { TvGroupTitle("Playback") }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Stream Source", color = TvTextWhite, fontSize = 14.sp)
+                    Text(activePlaylistName ?: "Direct from Xtream server", color = TvTextGray, fontSize = 13.sp)
+                }
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(TvBorder))
             }
+            item { TvToggleRow("Autoplay Next Episode", autoplayEnabled, onAutoplayChange) }
 
-            Spacer(Modifier.height(30.dp))
-            Text("FXTV Player TV · v1.0", color = TvTextGray, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            item { TvGroupTitle("App") }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Language", color = TvTextWhite, fontSize = 14.sp)
+                    Text("English", color = TvTextGray, fontSize = 13.sp)
+                }
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(TvBorder))
+                Spacer(Modifier.height(4.dp))
+            }
+            item { TvOutlineButton(text = "Clear Local Cache", onClick = onClearCache, modifier = Modifier.fillMaxWidth()) }
+            item { Spacer(Modifier.height(10.dp)) }
+            item { TvOutlineButton(text = "Clear Favorites & History", onClick = onClearFavorites, modifier = Modifier.fillMaxWidth()) }
+            item { Spacer(Modifier.height(10.dp)) }
+            item { TvPrimaryButton(text = "Logout", onClick = onLogout, modifier = Modifier.fillMaxWidth()) }
+
+            item { TvGroupTitle("Legal") }
+            item { TvOutlineButton(text = "Terms and Conditions", onClick = onOpenTerms, modifier = Modifier.fillMaxWidth()) }
+            item { Spacer(Modifier.height(10.dp)) }
+            item { TvOutlineButton(text = "Privacy Policy", onClick = onOpenPrivacy, modifier = Modifier.fillMaxWidth()) }
+
+            item {
+                Spacer(Modifier.height(30.dp))
+                Text(
+                    "FXTV Player TV · v1.0",
+                    color = TvTextGray,
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(Modifier.height(30.dp))
+            }
         }
-    }
     }
 }

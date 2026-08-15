@@ -259,7 +259,8 @@ class TvMainActivity : ComponentActivity() {
                                     onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
                                     onStopRecording = { ch ->
                                         viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
-                                    }
+                                    },
+                                    isPreviewPaused = currentlyPlaying != null
                                 )
 
                                 MainTab.MOVIES -> TvMoviesScreen(

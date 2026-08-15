@@ -30,6 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +69,8 @@ fun TvLiveTvScreen(
     onPlayChannel: (ChannelEntity) -> Unit,
     isChannelRecording: (String) -> Boolean = { false },
     onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
-    onStopRecording: (ChannelEntity) -> Unit = {}
+    onStopRecording: (ChannelEntity) -> Unit = {},
+    isPreviewPaused: Boolean = false
 ) {
     var selectedCategoryId by remember { mutableStateOf<String?>(null) }
     var search by remember { mutableStateOf("") }
@@ -74,6 +78,12 @@ fun TvLiveTvScreen(
     // المشغّل الرئيسي بملء الشاشة (والذي يفتح فقط عند الضغط الفعلي/OK على القناة)
     var previewChannel by remember { mutableStateOf<ChannelEntity?>(channels.firstOrNull()) }
     var currentEpg by remember { mutableStateOf<List<ShortEpgEntry>>(emptyList()) }
+
+    // كان الانتقال بالريموت من عمود القنوات يميناً نحو زر التسجيل/قسم EPG يفشل غالباً — البحث
+    // المكاني التلقائي في Compose لا يجد مساراً مضموناً عبر الفجوة الكبيرة بين الأعمدة. نُحدِّد
+    // هذا المسار صراحة بدل الاعتماد فقط على الهندسة المكانية التلقائية
+    val recordButtonFocusRequester = remember { FocusRequester() }
+    val epgNowPlayingFocusRequester = remember { FocusRequester() }
 
     // كانت قائمة القنوات تعرض جميع القنوات المحمَّلة محلياً دائماً بلا أي فلترة حسب التصنيف
     // المختار — الضغط على تصنيف كان يُبرزه أحمر (تركيز فقط) ويطلب تحميل قنواته، لكن العمود
@@ -152,7 +162,8 @@ fun TvLiveTvScreen(
                             channel = ch,
                             isPreviewing = previewChannel?.id == ch.id,
                             onFocus = { previewChannel = ch },
-                            onClick = { onPlayChannel(ch) }
+                            onClick = { onPlayChannel(ch) },
+                            rightFocusRequester = recordButtonFocusRequester
                         )
                     }
                 }
@@ -176,6 +187,7 @@ fun TvLiveTvScreen(
                 ) {
                     InlinePlayer(
                         mediaUrl = channel.streamUrl,
+                        isPaused = isPreviewPaused,
                         modifier = Modifier.fillMaxSize()
                     )
                     Box(
@@ -213,12 +225,18 @@ fun TvLiveTvScreen(
                         )
                     }
                     val recording = isChannelRecording(channel.id)
+                    val hasNowPlayingEpgButton = currentEpg.any { it.isNowPlaying }
                     TvRecordButton(
                         isRecording = recording,
                         onClick = {
                             if (recording) onStopRecording(channel)
                             else onStartRecording(channel, channel.name, 120)
-                        }
+                        },
+                        modifier = Modifier
+                            .focusRequester(recordButtonFocusRequester)
+                            .focusProperties {
+                                if (hasNowPlayingEpgButton) down = epgNowPlayingFocusRequester
+                            }
                     )
                 }
 
@@ -237,7 +255,12 @@ fun TvLiveTvScreen(
                                 onRecordClick = {
                                     if (isChannelRecording(channel.id)) onStopRecording(channel)
                                     else onStartRecording(channel, entry.title, estimateEpgDurationMinutes(entry))
-                                }
+                                },
+                                recordButtonModifier = if (entry.isNowPlaying) {
+                                    Modifier
+                                        .focusRequester(epgNowPlayingFocusRequester)
+                                        .focusProperties { up = recordButtonFocusRequester }
+                                } else Modifier
                             )
                         }
                     }
@@ -248,7 +271,12 @@ fun TvLiveTvScreen(
 }
 
 @Composable
-private fun TvEpgRow(entry: ShortEpgEntry, isRecording: Boolean, onRecordClick: () -> Unit) {
+private fun TvEpgRow(
+    entry: ShortEpgEntry,
+    isRecording: Boolean,
+    onRecordClick: () -> Unit,
+    recordButtonModifier: Modifier = Modifier
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -278,7 +306,7 @@ private fun TvEpgRow(entry: ShortEpgEntry, isRecording: Boolean, onRecordClick: 
             }
         }
         if (entry.isNowPlaying) {
-            TvRecordButton(isRecording = isRecording, onClick = onRecordClick, compact = true)
+            TvRecordButton(isRecording = isRecording, onClick = onRecordClick, compact = true, modifier = recordButtonModifier)
         }
     }
 }
@@ -297,11 +325,11 @@ private fun estimateEpgDurationMinutes(entry: ShortEpgEntry): Int {
 }
 
 @Composable
-private fun TvRecordButton(isRecording: Boolean, onClick: () -> Unit, compact: Boolean = false) {
+private fun TvRecordButton(isRecording: Boolean, onClick: () -> Unit, compact: Boolean = false, modifier: Modifier = Modifier) {
     val size = if (compact) 32.dp else 44.dp
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(size),
+        modifier = modifier.size(size),
         shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (isRecording) TvRed else Color.White.copy(alpha = 0.08f),
@@ -328,10 +356,16 @@ private fun TvChannelRow(
     channel: ChannelEntity,
     isPreviewing: Boolean,
     onFocus: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    rightFocusRequester: FocusRequester? = null
 ) {
     TvFocusable(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (rightFocusRequester != null) Modifier.focusProperties { right = rightFocusRequester }
+                else Modifier
+            ),
         shape = RoundedCornerShape(8.dp),
         onFocus = onFocus,
         onClick = onClick

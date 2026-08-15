@@ -50,16 +50,23 @@ private fun <T> TvGridScreen(
     posterOf: (T) -> String,
     titleOf: (T) -> String,
     ratingOf: (T) -> String,
+    categoryOf: (T) -> String,
     onItemClick: (T) -> Unit
 ) {
     var selectedCategoryId by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
     var sortOption by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(TvSortOption.DEFAULT) }
 
-    val sortedItems = androidx.compose.runtime.remember(items, sortOption) {
+    // كان اختيار تصنيف يُبرزه بصرياً فقط ويطلب تحميل قنواته من السيرفر، لكن الشبكة كانت تستمر
+    // بعرض كل العناصر بلا أي فلترة محلية فعلية حسب التصنيف المختار
+    val filteredItems = androidx.compose.runtime.remember(items, selectedCategoryId) {
+        if (selectedCategoryId == null) items else items.filter { categoryOf(it) == selectedCategoryId }
+    }
+
+    val sortedItems = androidx.compose.runtime.remember(filteredItems, sortOption) {
         when (sortOption) {
-            TvSortOption.DEFAULT -> items
-            TvSortOption.TOP_RATED -> items.sortedByDescending { ratingOf(it).toDoubleOrNull() ?: 0.0 }
-            TvSortOption.NAME_AZ -> items.sortedBy { titleOf(it).lowercase() }
+            TvSortOption.DEFAULT -> filteredItems
+            TvSortOption.TOP_RATED -> filteredItems.sortedByDescending { ratingOf(it).toDoubleOrNull() ?: 0.0 }
+            TvSortOption.NAME_AZ -> filteredItems.sortedBy { titleOf(it).lowercase() }
         }
     }
 
@@ -174,6 +181,7 @@ fun TvMoviesScreen(
         posterOf = { it.posterUrl },
         titleOf = { it.title },
         ratingOf = { it.rating },
+        categoryOf = { it.category },
         onItemClick = onMovieClick
     )
 }
@@ -192,6 +200,7 @@ fun TvSeriesScreen(
         posterOf = { it.posterUrl },
         titleOf = { it.title },
         ratingOf = { it.rating },
+        categoryOf = { it.category },
         onItemClick = onSeriesClick
     )
 }

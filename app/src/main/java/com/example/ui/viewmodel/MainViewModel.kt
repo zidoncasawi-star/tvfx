@@ -511,7 +511,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             val encryptedPass = com.example.util.SecurityUtils.encrypt(account.xtreamPassword)
             val playlist = PlaylistEntity(
-                name = "بث Xtream الخاص بك 🚀",
+                name = "Your Xtream Playlist",
                 type = PlaylistType.XTREAM,
                 serverUrl = account.xtreamHost,
                 username = account.xtreamUsername,
@@ -948,12 +948,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleMovieFavorite(movie: MovieEntity) {
         viewModelScope.launch {
             repository.toggleMovieFavorite(movie.id, movie.isFavorite)
+            // _mediaDetail لقطة (snapshot) ثابتة أُخذت لحظة فتح شاشة التفاصيل — تحديث قاعدة البيانات
+            // وحده لا يُحدِّثها تلقائياً، فيبقى زر "Add to Favorites" يعرض الحالة القديمة رغم أن
+            // الفيلم أُضيف فعلياً؛ نُحدِّثها هنا يدوياً لتنعكس فوراً على الشاشة المفتوحة حالياً
+            _mediaDetail.value?.let { current ->
+                if (current.movie?.id == movie.id) {
+                    _mediaDetail.value = current.copy(movie = current.movie.copy(isFavorite = !movie.isFavorite))
+                }
+            }
         }
     }
 
     fun toggleSeriesFavorite(seriesItem: SeriesEntity) {
         viewModelScope.launch {
             repository.toggleSeriesFavorite(seriesItem.id, seriesItem.isFavorite)
+            _mediaDetail.value?.let { current ->
+                if (current.series?.id == seriesItem.id) {
+                    _mediaDetail.value = current.copy(series = current.series.copy(isFavorite = !seriesItem.isFavorite))
+                }
+            }
         }
     }
 

@@ -43,11 +43,16 @@ object RecordingManager {
     }
 
     fun stopRecording(context: Context, recordingId: Long) {
+        // يجب عدم استخدام startForegroundService هنا: عند استدعائها، يُلزم النظام الخدمة
+        // باستدعاء startForeground() خلال ثوانٍ قليلة وإلا يقتل أندرويد التطبيق بالكامل فوراً
+        // (ForegroundServiceDidNotStartInTimeException) — أمر "إيقاف" لا يستدعي startForeground
+        // إطلاقاً (الخدمة تتوقف عن نفسها)، فيجب إرسال هذا الأمر عبر startService العادية بدلاً منه؛
+        // بما أن الخدمة تكون بالفعل تعمل بصفة foreground من أمر البدء الأصلي، فهذا آمن تماماً
         val intent = Intent(context, RecordingService::class.java).apply {
             action = RecordingService.ACTION_STOP
             putExtra(RecordingService.EXTRA_RECORDING_ID, recordingId)
         }
-        ContextCompat.startForegroundService(context, intent)
+        runCatching { context.startService(intent) }
     }
 
     suspend fun deleteRecording(context: Context, recording: RecordingEntity) {

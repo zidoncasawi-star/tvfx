@@ -55,6 +55,12 @@ fun TvPrimaryButton(
             focusedContainerColor = Color(0xFFFF1A24),
             focusedContentColor = TvTextWhite
         ),
+        // بدون حدّ مرئي عند التركيز، الفرق بين درجتي الأحمر (TvRed <-> #FF1A24) شبه غير مرئي على
+        // شاشة التلفاز — يبدو للمستخدم أن الزر غير مركَّز عليه إطلاقاً رغم أنه هو المركَّز فعلياً
+        border = ButtonDefaults.border(
+            border = Border(androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)),
+            focusedBorder = Border(androidx.compose.foundation.BorderStroke(3.dp, TvFocusBorder))
+        ),
         shape = ButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
     ) {
         Text(text)

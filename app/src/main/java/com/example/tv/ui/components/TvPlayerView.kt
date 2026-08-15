@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -627,22 +628,53 @@ fun TvPlayerView(
                         }
                         Spacer(Modifier.height(6.dp))
                         val progress = (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                        var seekBarFocused by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(6.dp)
-                                .background(Color.White.copy(alpha = 0.25f), RoundedCornerShape(3.dp))
+                                // قابل للتركيز عبر D-pad الآن — كان مجرد عرض بصري ثابت بلا أي تفاعل
+                                .focusable()
+                                .onFocusChanged { seekBarFocused = it.isFocused }
+                                .onKeyEvent { event ->
+                                    if (event.type == KeyEventType.KeyDown) {
+                                        when (event.key) {
+                                            Key.DirectionLeft -> {
+                                                exoPlayer.seekTo((exoPlayer.currentPosition - 10000).coerceAtLeast(0))
+                                                true
+                                            }
+                                            Key.DirectionRight -> {
+                                                exoPlayer.seekTo((exoPlayer.currentPosition + 10000).coerceAtMost(duration))
+                                                true
+                                            }
+                                            else -> false
+                                        }
+                                    } else false
+                                }
+                                .padding(vertical = 5.dp)
+                                .border(
+                                    width = if (seekBarFocused) 2.dp else 0.dp,
+                                    color = if (seekBarFocused) TvFocusBorder else Color.Transparent,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(3.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(progress)
-                                    .fillMaxHeight()
-                                    .background(TvRed, RoundedCornerShape(3.dp))
-                            )
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .background(Color.White.copy(alpha = 0.25f), RoundedCornerShape(3.dp))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(progress)
+                                        .fillMaxHeight()
+                                        .background(TvRed, RoundedCornerShape(3.dp))
+                                )
+                            }
                         }
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Use ⏪ / ⏩ to seek · Screen: ${resizeModeState.label}",
+                            "Focus the bar and use ◀ / ▶ to seek · Screen: ${resizeModeState.label}",
                             color = TvTextGray,
                             fontSize = 11.sp,
                             modifier = Modifier.align(Alignment.End)
