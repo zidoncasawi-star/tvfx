@@ -211,7 +211,10 @@ class TvMainActivity : ComponentActivity() {
                                     channels = channels,
                                     movies = movies,
                                     series = series,
+                                    movieCategories = vodCategories,
+                                    seriesCategories = seriesCategories,
                                     watchHistory = watchHistory,
+                                    onLoadCategoryStreams = { catId, type -> viewModel.loadStreamsByCategory(catId, type) },
                                     onPlayChannel = { ch ->
                                         viewModel.playMedia(
                                             PlayingMedia(

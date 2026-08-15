@@ -2,7 +2,9 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Info
@@ -91,9 +93,9 @@ fun HomeScreen(
     val requestedCategoryIds = remember { mutableSetOf<String>() }
     var isLoadingMore by remember { mutableStateOf(false) }
 
-    // لا يوجد تحميل تلقائي لكل التصنيفات في الخلفية — بالضبط كما تعمل تطبيقات IPTV الاحترافية
-    // (مثل IPTV Smarters): تُعرض فقط التصنيفات التي وصل محتواها فعلياً من الاستيراد الأولي،
-    // والمزيد يُحمَّل فقط عند ضغط المستخدم على زر "تحميل المزيد" بنفسه — طلب واحد في كل مرة، بلا زحف تلقائي.
+    // نفس نظام سطح المكتب تماماً الآن: تصنيف واحد يُحمَّل في كل مرة (بلا تحميل كل شيء دفعة واحدة
+    // فيُجمِّد التطبيق)، لكن التحميل يبدأ تلقائياً عند الاقتراب من أسفل القائمة أثناء التمرير
+    // (بدل انتظار ضغطة زر "تحميل المزيد" فقط) — الزر يبقى موجوداً أيضاً كخيار يدوي احتياطي
     val hasMoreToLoad = remember(vodCategories, seriesCategories, movies, series) {
         seriesCategories.any { cat -> series.none { it.category == cat.id } } ||
             vodCategories.any { cat -> movies.none { it.category == cat.id } }
@@ -292,7 +294,25 @@ fun HomeScreen(
         }
     }
 
+    val homeListState = rememberLazyListState()
+
+    // معادِل IntersectionObserver (rootMargin: 200px) في سطح المكتب — يكتشف الاقتراب من أسفل
+    // القائمة أثناء التمرير ويُحمِّل التصنيف التالي تلقائياً بدل انتظار ضغطة الزر فقط
+    val shouldLoadMoreOnScroll by remember {
+        derivedStateOf {
+            val info = homeListState.layoutInfo
+            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 3
+        }
+    }
+    LaunchedEffect(shouldLoadMoreOnScroll, hasMoreToLoad, selectedCountryCode, searchQuery) {
+        if (shouldLoadMoreOnScroll && hasMoreToLoad && selectedCountryCode == "all" && searchQuery.isEmpty()) {
+            loadNextCategoryManually()
+        }
+    }
+
     LazyColumn(
+        state = homeListState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 80.dp)
     ) {

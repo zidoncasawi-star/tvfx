@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,7 @@ import com.example.model.ChannelEntity
 import com.example.model.MovieEntity
 import com.example.model.SeriesEntity
 import com.example.model.WatchHistoryEntity
+import com.example.model.XtreamCategoryEntity
 import com.example.tv.theme.TvBg
 import com.example.tv.theme.TvCard
 import com.example.tv.theme.TvRed
@@ -65,7 +68,10 @@ fun TvHomeScreen(
     channels: List<ChannelEntity>,
     movies: List<MovieEntity>,
     series: List<SeriesEntity>,
+    movieCategories: List<XtreamCategoryEntity>,
+    seriesCategories: List<XtreamCategoryEntity>,
     watchHistory: List<WatchHistoryEntity>,
+    onLoadCategoryStreams: (categoryId: String, type: String) -> Unit,
     onPlayChannel: (ChannelEntity) -> Unit,
     onMovieClick: (MovieEntity) -> Unit,
     onSeriesClick: (SeriesEntity) -> Unit,
@@ -88,17 +94,64 @@ fun TvHomeScreen(
         }
     }
 
-    // صفوف الأفلام والمسلسلات مُجمَّعة حسب التصنيف الحقيقي (وليس صفاً مسطحاً واحداً) — نفس أسلوب
-    // سطح المكتب في عرض الرئيسية؛ نعرض عدداً محدوداً من التصنيفات أولاً مع زر "تحميل المزيد"
-    val movieCategoryRows = remember(movies) {
-        movies.groupBy { it.category.ifBlank { "Movies" } }.toList()
+    // نفس نظام سطح المكتب تماماً: التصنيفات لا تُحمَّل كلها دفعة واحدة (قد يُجمِّد التطبيق)، بل
+    // تصنيف واحد في كل مرة، أول تصنيف أفلام + أول تصنيف مسلسلات عند فتح الرئيسية، ثم تصنيف واحد
+    // إضافي في كل مرة يقترب فيها المستخدم من أسفل القائمة (بدل زر "تحميل المزيد" اليدوي). المسلسلات
+    // لها الأولوية حتى تنفد تصنيفاتها، تماماً مثل loadNextHomeCategory() في app.js
+    var revealedMovieCatCount by remember { mutableStateOf(0) }
+    var revealedSeriesCatCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(movieCategories, seriesCategories) {
+        if (revealedMovieCatCount == 0 && movieCategories.isNotEmpty()) {
+            onLoadCategoryStreams(movieCategories[0].id, "vod")
+            revealedMovieCatCount = 1
+        }
+        if (revealedSeriesCatCount == 0 && seriesCategories.isNotEmpty()) {
+            onLoadCategoryStreams(seriesCategories[0].id, "series")
+            revealedSeriesCatCount = 1
+        }
     }
-    val seriesCategoryRows = remember(series) {
-        series.groupBy { it.category.ifBlank { "Series" } }.toList()
+
+    fun revealNextCategory() {
+        if (revealedSeriesCatCount < seriesCategories.size) {
+            onLoadCategoryStreams(seriesCategories[revealedSeriesCatCount].id, "series")
+            revealedSeriesCatCount++
+        } else if (revealedMovieCatCount < movieCategories.size) {
+            onLoadCategoryStreams(movieCategories[revealedMovieCatCount].id, "vod")
+            revealedMovieCatCount++
+        }
     }
-    var visibleCategoryCount by remember { mutableStateOf(4) }
+
+    // صف واحد لكل تصنيف مكشوف حتى الآن وله محتوى فعلاً محمَّل — بعنوان التصنيف الحقيقي (وليس
+    // معرِّفه الخام كما كان سابقاً)
+    val movieCategoryRows = remember(movies, movieCategories, revealedMovieCatCount) {
+        movieCategories.take(revealedMovieCatCount).mapNotNull { cat ->
+            val items = movies.filter { it.category == cat.id }
+            if (items.isNotEmpty()) cat.name to items else null
+        }
+    }
+    val seriesCategoryRows = remember(series, seriesCategories, revealedSeriesCatCount) {
+        seriesCategories.take(revealedSeriesCatCount).mapNotNull { cat ->
+            val items = series.filter { it.category == cat.id }
+            if (items.isNotEmpty()) cat.name to items else null
+        }
+    }
+    val hasMoreCategories = revealedSeriesCatCount < seriesCategories.size || revealedMovieCatCount < movieCategories.size
 
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+
+    // معادِل IntersectionObserver (rootMargin: 200px) في سطح المكتب — يكتشف الاقتراب من أسفل
+    // القائمة ويُحمِّل التصنيف التالي تلقائياً بدل انتظار ضغطة زر يدوية
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            info.totalItemsCount > 0 && lastVisible >= info.totalItemsCount - 3
+        }
+    }
+    LaunchedEffect(shouldLoadMore, hasMoreCategories) {
+        if (shouldLoadMore && hasMoreCategories) revealNextCategory()
+    }
 
     androidx.compose.foundation.lazy.LazyColumn(
         state = listState,
@@ -134,28 +187,36 @@ fun TvHomeScreen(
 
         // القنوات المباشرة عمداً لا تظهر في الصفحة الرئيسية — نفس سلوك سطح المكتب تماماً؛
         // تبقى قابلة للوصول فقط من تبويب "Live TV" نفسه أو من نتائج البحث الشامل
-        val allCategoryRows = movieCategoryRows.map { it to true } + seriesCategoryRows.map { it to false }
-        allCategoryRows.take(visibleCategoryCount).forEach { (entry, isMovie) ->
-            val (categoryName, categoryItems) = entry
+        movieCategoryRows.forEach { (categoryName, categoryItems) ->
             item {
                 TvContentRow(title = categoryName) {
-                    items(categoryItems.take(30)) { it2 ->
-                        if (isMovie) {
-                            @Suppress("UNCHECKED_CAST")
-                            TvPosterCard(title = (it2 as MovieEntity).title, imageUrl = it2.posterUrl) { onMovieClick(it2) }
-                        } else {
-                            @Suppress("UNCHECKED_CAST")
-                            TvPosterCard(title = (it2 as SeriesEntity).title, imageUrl = it2.posterUrl) { onSeriesClick(it2) }
-                        }
+                    items(categoryItems) { m ->
+                        TvPosterCard(title = m.title, imageUrl = m.posterUrl) { onMovieClick(m) }
+                    }
+                }
+            }
+        }
+        seriesCategoryRows.forEach { (categoryName, categoryItems) ->
+            item {
+                TvContentRow(title = categoryName) {
+                    items(categoryItems) { s ->
+                        TvPosterCard(title = s.title, imageUrl = s.posterUrl) { onSeriesClick(s) }
                     }
                 }
             }
         }
 
-        if (visibleCategoryCount < allCategoryRows.size) {
+        if (hasMoreCategories) {
             item {
-                Box(modifier = Modifier.fillMaxWidth().padding(start = 40.dp, top = 10.dp, bottom = 30.dp)) {
-                    TvOutlineButton(text = "Load More Categories", onClick = { visibleCategoryCount += 4 })
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = TvRed,
+                        strokeWidth = 2.dp
+                    )
                 }
             }
         }
