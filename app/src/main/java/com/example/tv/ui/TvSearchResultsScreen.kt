@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +47,7 @@ fun TvSearchResultsScreen(
     val matchedSeries = remember(series, q) { series.filter { it.title.contains(q, ignoreCase = true) } }
     val totalCount = matchedChannels.size + matchedMovies.size + matchedSeries.size
 
-    LazyColumn(modifier = Modifier.fillMaxSize().background(TvBg)) {
+    LazyColumn(modifier = Modifier.fillMaxSize().background(TvBg).focusRestorer()) {
         item {
             Text(
                 text = "Search results for \"$q\" ($totalCount)",
@@ -109,7 +110,8 @@ private fun SearchResultRow(title: String, content: androidx.compose.foundation.
         )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 40.dp)
+            contentPadding = PaddingValues(horizontal = 40.dp),
+            modifier = Modifier.focusRestorer()
         ) {
             content()
         }

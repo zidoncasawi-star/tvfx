@@ -1,5 +1,6 @@
 package com.example.tv.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -112,6 +114,14 @@ fun TvPlayerView(
 
     var availableAudioTracks by remember { mutableStateOf<List<TvAudioTrackOption>>(emptyList()) }
     var showAudioTrackDialog by remember { mutableStateOf(false) }
+
+    // بدون هذه المعالجات، يتولى BackHandler الخاص بـ TvMainActivity (المفعَّل دائماً طالما المشغّل
+    // مفتوحاً) زر الرجوع أولاً، فيغلق المشغّل بأكمله فوراً حتى لو كانت قائمة تبديل القنوات أو أحد
+    // الحوارات (مؤقّت النوم / مسار الصوت) مفتوحاً فوقه — بينما المتوقَّع (ونفس مبدأ "خطوة بخطوة"
+    // المطبَّق في بقية التطبيق) هو إغلاق الطبقة العلوية فقط أولاً، لا الخروج من المشغّل مباشرة
+    BackHandler(enabled = showChannelDrawer) { showChannelDrawer = false }
+    BackHandler(enabled = showSleepTimerDialog) { showSleepTimerDialog = false }
+    BackHandler(enabled = showAudioTrackDialog) { showAudioTrackDialog = false }
 
     val playPauseFocusRequester = remember { FocusRequester() }
     val rootFocusRequester = remember { FocusRequester() }
@@ -702,8 +712,8 @@ fun TvPlayerView(
                         TvIconButton(icon = Icons.Default.Close, contentDescription = "Close list", onClick = { showChannelDrawer = false })
                     }
                     Spacer(Modifier.height(10.dp))
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        itemsIndexed(channelList) { index, ch ->
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusRestorer()) {
+                        itemsIndexed(channelList, key = { _, ch -> ch.id }) { index, ch ->
                             val isCurrent = ch.streamUrl == mediaUrl
                             TvFocusable(
                                 onClick = {

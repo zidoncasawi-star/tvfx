@@ -46,6 +46,9 @@ interface ChannelDao {
     @Query("UPDATE channels SET isFavorite = :isFav WHERE id = :channelId")
     suspend fun updateFavorite(channelId: String, isFav: Boolean)
 
+    @Query("UPDATE channels SET isFavorite = 0 WHERE playlistId = :playlistId")
+    suspend fun clearAllFavorites(playlistId: Long)
+
     @Query("DELETE FROM channels WHERE playlistId = :playlistId")
     suspend fun deleteByPlaylist(playlistId: Long)
 }
@@ -67,6 +70,9 @@ interface MovieDao {
     @Query("UPDATE movies SET isFavorite = :isFav WHERE id = :movieId")
     suspend fun updateFavorite(movieId: String, isFav: Boolean)
 
+    @Query("UPDATE movies SET isFavorite = 0 WHERE playlistId = :playlistId")
+    suspend fun clearAllFavorites(playlistId: Long)
+
     @Query("DELETE FROM movies WHERE playlistId = :playlistId")
     suspend fun deleteByPlaylist(playlistId: Long)
 }
@@ -87,6 +93,9 @@ interface SeriesDao {
 
     @Query("UPDATE series SET isFavorite = :isFav WHERE id = :seriesId")
     suspend fun updateFavorite(seriesId: String, isFav: Boolean)
+
+    @Query("UPDATE series SET isFavorite = 0 WHERE playlistId = :playlistId")
+    suspend fun clearAllFavorites(playlistId: Long)
 
     @Query("DELETE FROM series WHERE playlistId = :playlistId")
     suspend fun deleteByPlaylist(playlistId: Long)
@@ -114,6 +123,9 @@ interface WatchHistoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHistory(history: WatchHistoryEntity)
+
+    @Query("DELETE FROM watch_history")
+    suspend fun clearAll()
 }
 
 @Dao

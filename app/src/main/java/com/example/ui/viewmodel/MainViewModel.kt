@@ -193,6 +193,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** كان زر "Clear Favorites & History" في الإعدادات مربوطاً بلا أي كود فعلي خلفه (no-op) */
+    fun clearFavoritesAndHistory() {
+        val active = activePlaylist.value ?: return
+        viewModelScope.launch {
+            repository.clearFavoritesAndHistory(active.id)
+            _userMessage.value = if (_appLanguage.value == "ar") {
+                "تم مسح المفضلة وسجل المشاهدة."
+            } else if (_appLanguage.value == "fr") {
+                "Favoris et historique effacés."
+            } else {
+                "Favorites and watch history cleared."
+            }
+        }
+    }
+
     val playlists: StateFlow<List<PlaylistEntity>> = repository.playlists.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
     )

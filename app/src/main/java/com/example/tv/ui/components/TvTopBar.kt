@@ -154,6 +154,9 @@ fun TvTopBar(
     }
 
     if (showPanel) {
+        // نفس الفجوة الموجودة في كل نافذة عائمة بحالة محلية غير معروفة لسلسلة BackHandler في
+        // TvMainActivity — بدونها يقفز زر الرجوع لتبويب آخر بدل إغلاق اللوحة، فتبقى مفتوحة عالقة
+        androidx.activity.compose.BackHandler(onBack = { showPanel = false })
         val panelCloseFocusRequester = remember { FocusRequester() }
         LaunchedEffect(showPanel) {
             panelCloseFocusRequester.requestFocusWithRetry()

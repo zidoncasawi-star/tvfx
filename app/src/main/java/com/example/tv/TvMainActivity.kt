@@ -387,7 +387,7 @@ class TvMainActivity : ComponentActivity() {
                                 onAutoplayChange = { autoplay = it },
                                 activePlaylistName = activePlaylist?.name,
                                 onClearCache = { viewModel.clearAppCache() },
-                                onClearFavorites = { /* يطابق سلوك سطح المكتب: يمسح المفضلة محلياً فقط لاحقاً عند الحاجة */ },
+                                onClearFavorites = { viewModel.clearFavoritesAndHistory() },
                                 onLogout = { viewModel.logoutUser() },
                                 onOpenTerms = { openUrl("$ADMIN_URL/terms.php") },
                                 onOpenPrivacy = { openUrl("$ADMIN_URL/privacy.php") }

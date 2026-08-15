@@ -406,6 +406,14 @@ class StreamRepository(private val db: AppDatabase) {
         db.seriesDao().updateFavorite(seriesId, !currentFav)
     }
 
+    /** زر "Clear Favorites & History" في الإعدادات كان لا يفعل شيئاً إطلاقاً (لا يوجد أي منطق خلفه) */
+    suspend fun clearFavoritesAndHistory(playlistId: Long) {
+        db.channelDao().clearAllFavorites(playlistId)
+        db.movieDao().clearAllFavorites(playlistId)
+        db.seriesDao().clearAllFavorites(playlistId)
+        db.watchHistoryDao().clearAll()
+    }
+
     suspend fun deletePlaylist(playlist: PlaylistEntity) {
         db.channelDao().deleteByPlaylist(playlist.id)
         db.movieDao().deleteByPlaylist(playlist.id)

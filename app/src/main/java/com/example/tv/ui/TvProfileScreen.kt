@@ -207,6 +207,11 @@ private fun AddPlaylistQrDialog(username: String, activationCode: String, onDism
         closeFocusRequester.requestFocusWithRetry()
     }
 
+    // حالة هذا الحوار محلية داخل TvProfileScreen ولا تعرفها سلسلة BackHandler في TvMainActivity —
+    // بدون هذا، يقفز زر الرجوع مباشرة إلى تبويب "الرئيسية" (آخر حالة معروفة لديه) بينما يبقى هذا
+    // الحوار مفتوحاً فوقه بلا أي طريقة لإغلاقه بالريموت
+    androidx.activity.compose.BackHandler(onBack = onDismiss)
+
     val targetUrl = remember(username, activationCode) {
         "$ADMIN_URL/login_via_code.php?username=${java.net.URLEncoder.encode(username, "UTF-8")}" +
             "&code=${java.net.URLEncoder.encode(activationCode, "UTF-8")}&type=manage"
