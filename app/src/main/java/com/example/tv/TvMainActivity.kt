@@ -315,7 +315,6 @@ class TvMainActivity : ComponentActivity() {
                                     onSelectPlaylist = { viewModel.selectPlaylist(it) },
                                     onCheckActivation = { viewModel.checkSubscription() },
                                     onContentUpdate = { viewModel.importAdminXtreamSubscription() },
-                                    onAddNewPlaylist = { openUrl("https://app.flixplayer.pro/playlists.php?type=activate") },
                                     onLogout = { viewModel.logoutUser() }
                                 )
                             }

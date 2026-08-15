@@ -17,18 +17,28 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import coil.compose.AsyncImage
 import com.example.model.PlaylistEntity
 import com.example.model.UserAccountEntity
 import com.example.tv.theme.TvBg
 import com.example.tv.theme.TvBorder
+import com.example.tv.theme.TvCard
 import com.example.tv.theme.TvPanel
 import com.example.tv.theme.TvRed
 import com.example.tv.theme.TvTextGray
@@ -36,6 +46,9 @@ import com.example.tv.theme.TvTextWhite
 import com.example.tv.ui.components.TvFocusable
 import com.example.tv.ui.components.TvOutlineButton
 import com.example.tv.ui.components.TvPrimaryButton
+import kotlinx.coroutines.delay
+
+private const val ADMIN_URL = "https://app.flixplayer.pro"
 
 @Composable
 private fun TvSettingsRow(label: String, value: @Composable () -> Unit) {
@@ -60,7 +73,6 @@ fun TvProfileScreen(
     onSelectPlaylist: (Long) -> Unit,
     onCheckActivation: () -> Unit,
     onContentUpdate: () -> Unit = {},
-    onAddNewPlaylist: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val expiryText = remember(account.expiresAt) {
@@ -68,6 +80,7 @@ fun TvProfileScreen(
             java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.ENGLISH).format(java.util.Date(account.expiresAt))
         } else "—"
     }
+    var showAddPlaylistQr by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -151,7 +164,7 @@ fun TvProfileScreen(
         }
 
         Spacer(Modifier.height(16.dp))
-        TvOutlineButton(text = "+ Add New Playlist", onClick = onAddNewPlaylist)
+        TvOutlineButton(text = "+ Add New Playlist", onClick = { showAddPlaylistQr = true })
 
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -160,5 +173,80 @@ fun TvProfileScreen(
             TvPrimaryButton(text = "Logout", onClick = onLogout)
         }
     }
+    }
+
+    if (showAddPlaylistQr) {
+        AddPlaylistQrDialog(
+            username = account.username,
+            activationCode = account.activationCode,
+            onDismiss = { showAddPlaylistQr = false }
+        )
+    }
+}
+
+/**
+ * يعرض رمز QR يفتح على الهاتف رابطاً يسجّل دخول جلسة الموقع تلقائياً بنفس بيانات حساب هذا
+ * الجهاز (عبر login_via_code.php)، فيصل المستخدم مباشرة لصفحة إدارة قوائم تشغيله الفعلية دون
+ * الحاجة لكتابة اسم مستخدم أو كلمة مرور يدوياً على شاشة التلفاز.
+ */
+@Composable
+private fun AddPlaylistQrDialog(username: String, activationCode: String, onDismiss: () -> Unit) {
+    val closeFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        delay(80)
+        runCatching { closeFocusRequester.requestFocus() }
+    }
+
+    val targetUrl = remember(username, activationCode) {
+        "$ADMIN_URL/login_via_code.php?username=${java.net.URLEncoder.encode(username, "UTF-8")}" +
+            "&code=${java.net.URLEncoder.encode(activationCode, "UTF-8")}&type=manage"
+    }
+    val qrImageUrl = remember(targetUrl) {
+        "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${java.net.URLEncoder.encode(targetUrl, "UTF-8")}"
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.75f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .width(420.dp)
+                .background(TvCard, RoundedCornerShape(16.dp))
+                .padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Add New Playlist", color = TvTextWhite, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                TvOutlineButton(
+                    text = "✕",
+                    onClick = onDismiss,
+                    modifier = Modifier.focusRequester(closeFocusRequester)
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "Scan this code with your phone to open your account's playlist page directly:",
+                color = TvTextGray,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 17.sp
+            )
+            Spacer(Modifier.height(18.dp))
+            AsyncImage(
+                model = qrImageUrl,
+                contentDescription = "Add playlist QR code",
+                modifier = Modifier
+                    .size(200.dp)
+                    .background(Color.White, RoundedCornerShape(10.dp))
+                    .padding(10.dp)
+            )
+        }
     }
 }
