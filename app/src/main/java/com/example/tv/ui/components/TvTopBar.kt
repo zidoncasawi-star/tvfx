@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +32,7 @@ import com.example.tv.theme.TvPanel
 import com.example.tv.theme.TvRed
 import com.example.tv.theme.TvTextGray
 import com.example.tv.theme.TvTextWhite
+import kotlinx.coroutines.delay
 
 private const val PREFS_NAME = "tv_notifications_prefs"
 private const val KEY_LAST_SEEN_ID = "last_seen_notification_id"
@@ -121,6 +124,11 @@ fun TvTopBar(
     }
 
     if (showPanel) {
+        val panelCloseFocusRequester = remember { FocusRequester() }
+        LaunchedEffect(showPanel) {
+            delay(80)
+            runCatching { panelCloseFocusRequester.requestFocus() }
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,7 +151,7 @@ fun TvTopBar(
                         Text("Notifications", color = TvTextWhite, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Surface(
                             onClick = { showPanel = false },
-                            modifier = Modifier.size(30.dp),
+                            modifier = Modifier.size(30.dp).focusRequester(panelCloseFocusRequester),
                             shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
                             colors = ClickableSurfaceDefaults.colors(containerColor = Color.White.copy(alpha = 0.08f)),
                             border = ClickableSurfaceDefaults.border(

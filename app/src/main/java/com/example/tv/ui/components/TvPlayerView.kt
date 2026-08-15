@@ -688,12 +688,13 @@ private fun TvIconButton(
     onClick: () -> Unit,
     active: Boolean = false,
     size: androidx.compose.ui.unit.Dp = 44.dp,
-    iconSize: androidx.compose.ui.unit.Dp = 22.dp
+    iconSize: androidx.compose.ui.unit.Dp = 22.dp,
+    modifier: Modifier = Modifier
 ) {
     var focused by remember { mutableStateOf(false) }
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(size).onFocusChanged { focused = it.isFocused },
+        modifier = modifier.size(size).onFocusChanged { focused = it.isFocused },
         shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = if (active) TvRed else Color.Black.copy(alpha = 0.5f),
@@ -712,6 +713,14 @@ private fun TvIconButton(
 
 @Composable
 private fun TvSimpleDialog(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    // نفس إصلاح التركيز الأوّلي المطبَّق على كل النوافذ العائمة الأخرى — بدونه لا يوجد أي عنصر
+    // مركَّز عند ظهور الحوار (مؤقّت النوم / مسار الصوت) فلا يستجيب الريموت إطلاقاً
+    val closeFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        delay(80)
+        runCatching { closeFocusRequester.requestFocus() }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -730,7 +739,14 @@ private fun TvSimpleDialog(title: String, onDismiss: () -> Unit, content: @Compo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                    TvIconButton(icon = Icons.Default.Close, contentDescription = "Close", onClick = onDismiss, size = 34.dp, iconSize = 16.dp)
+                    TvIconButton(
+                        icon = Icons.Default.Close,
+                        contentDescription = "Close",
+                        onClick = onDismiss,
+                        size = 34.dp,
+                        iconSize = 16.dp,
+                        modifier = Modifier.focusRequester(closeFocusRequester)
+                    )
                 }
                 Spacer(Modifier.height(14.dp))
                 content()
