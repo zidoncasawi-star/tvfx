@@ -214,7 +214,11 @@ fun TvPlayerView(
     DisposableEffect(mediaUrl) {
         val mediaItem = MediaItem.fromUri(mediaUrl)
         exoPlayer.setMediaItem(mediaItem)
-        if (initialPlaybackPositionMs > 0L) {
+        // القفز لموضع محفوظ من "أكمل المشاهدة" منطقي فقط للفيديو حسب الطلب (فيلم/حلقة) — بثّ
+        // مباشر ليس له "موضع" فعلي يمكن العودة إليه. تطبيق seekTo على قناة حية كان يقفز إلى نقطة
+        // قديمة خارج نافذة التخزين المؤقت (buffer) الحالية لبثّ HLS المباشر، فيتجمَّد المشغّل على
+        // آخر إطار متاح عند حافة النافذة بدل الوصول فعلياً للبثّ المباشر الحالي
+        if (type != "LIVE" && initialPlaybackPositionMs > 0L) {
             exoPlayer.seekTo(initialPlaybackPositionMs)
         }
         exoPlayer.prepare()
