@@ -124,23 +124,6 @@ data class CustomFolderEntity(
     val channelIdsJson: String = "[]" // JSON string or comma separated IDs
 )
 
-@Entity(tableName = "recordings")
-data class RecordingEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val playlistId: Long,
-    val channelId: String,
-    val channelName: String,
-    val streamUrl: String = "", // مطلوب لبدء التسجيل فعلياً عند حلول موعد التسجيلات المجدولة
-    val programTitle: String = "",
-    val categoryName: String = "",
-    val filePath: String = "",
-    val startedAt: Long = System.currentTimeMillis(),
-    val scheduledStartAtMs: Long = 0L, // > 0 فقط للتسجيلات المجدولة قبل بدئها فعلياً
-    val durationMs: Long = 0L,
-    val plannedDurationMinutes: Int = 0, // 0 = يسجّل حتى الإيقاف اليدوي
-    val status: String = "RECORDING" // "SCHEDULED", "RECORDING", "COMPLETED", "FAILED", "CANCELLED"
-)
-
 @Entity(tableName = "xtream_categories")
 data class XtreamCategoryEntity(
     @PrimaryKey val id: String, // String because it could be anything from Xtream
@@ -175,6 +158,5 @@ enum class MainTab(val titleAr: String) {
     MOVIES("الأفلام"),
     SERIES("المسلسلات"),
     FAVORITES("المفضلة"),
-    RECORDINGS("التسجيلات"),
     USER_ACCOUNT("حسابي")
 }

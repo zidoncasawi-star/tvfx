@@ -51,7 +51,6 @@ import com.example.tv.ui.TvLiveTvScreen
 import com.example.tv.ui.TvLoginScreen
 import com.example.tv.ui.TvMoviesScreen
 import com.example.tv.ui.TvProfileScreen
-import com.example.tv.ui.TvRecordingsScreen
 import com.example.tv.ui.TvSearchResultsScreen
 import com.example.tv.ui.TvSeriesScreen
 import com.example.tv.ui.TvSettingsScreen
@@ -143,7 +142,6 @@ class TvMainActivity : ComponentActivity() {
                 val activePlaylist by viewModel.activePlaylist.collectAsStateWithLifecycle()
                 val currentlyPlaying by viewModel.currentlyPlaying.collectAsStateWithLifecycle()
                 val mediaDetail by viewModel.mediaDetail.collectAsStateWithLifecycle()
-                val recordings by viewModel.recordings.collectAsStateWithLifecycle()
 
                 var autoplay by remember { mutableStateOf(true) }
 
@@ -184,9 +182,7 @@ class TvMainActivity : ComponentActivity() {
                                 adminUrl = ADMIN_URL,
                                 searchQuery = searchQuery,
                                 onSearchQueryChange = { searchQuery = it },
-                                onLogout = { viewModel.logoutUser() },
-                                hasActiveRecording = recordings.any { it.status == "RECORDING" },
-                                onOpenRecordings = { selectedTab = MainTab.RECORDINGS }
+                                onLogout = { viewModel.logoutUser() }
                             )
 
                             Box(modifier = Modifier.weight(1f)) {
@@ -261,15 +257,6 @@ class TvMainActivity : ComponentActivity() {
                                             )
                                         )
                                     },
-                                    isChannelRecording = { id -> viewModel.isChannelRecording(id) },
-                                    onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
-                                    onStopRecording = { ch ->
-                                        viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
-                                    },
-                                    isProgramScheduled = { chId, title -> viewModel.isProgramScheduled(chId, title) },
-                                    onToggleSchedule = { ch, entry, startAt, minutes ->
-                                        viewModel.toggleScheduleForProgram(ch, entry, startAt, minutes)
-                                    },
                                     isPreviewPaused = currentlyPlaying != null
                                 )
 
@@ -302,22 +289,6 @@ class TvMainActivity : ComponentActivity() {
                                             )
                                         )
                                     }
-                                )
-
-                                MainTab.RECORDINGS -> TvRecordingsScreen(
-                                    recordings = recordings,
-                                    onPlayRecording = { rec ->
-                                        viewModel.playMedia(
-                                            PlayingMedia(
-                                                id = "rec_${rec.id}",
-                                                title = rec.programTitle.ifBlank { rec.channelName },
-                                                streamUrl = "file://${rec.filePath}",
-                                                type = "MOVIE"
-                                            )
-                                        )
-                                    },
-                                    onStopRecording = { viewModel.stopRecording(it.id) },
-                                    onDeleteRecording = { viewModel.deleteRecording(it) }
                                 )
 
                                 MainTab.USER_ACCOUNT -> TvProfileScreen(
@@ -441,11 +412,6 @@ class TvMainActivity : ComponentActivity() {
                                                 seriesTitle = media.seriesTitle
                                             )
                                         )
-                                    },
-                                    isChannelRecording = { id -> viewModel.isChannelRecording(id) },
-                                    onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
-                                    onStopRecording = { ch ->
-                                        viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
                                     }
                                 )
                             }

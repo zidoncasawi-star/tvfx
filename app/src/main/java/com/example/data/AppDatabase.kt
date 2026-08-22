@@ -200,30 +200,6 @@ interface CustomFolderDao {
     suspend fun deleteFolder(folder: CustomFolderEntity)
 }
 
-@Dao
-interface RecordingDao {
-    @Query("SELECT * FROM recordings ORDER BY startedAt DESC")
-    fun getAllRecordings(): Flow<List<RecordingEntity>>
-
-    @Query("SELECT * FROM recordings WHERE status = 'RECORDING'")
-    suspend fun getActiveRecordingsSync(): List<RecordingEntity>
-
-    @Query("SELECT * FROM recordings WHERE status = 'SCHEDULED'")
-    suspend fun getScheduledRecordingsSync(): List<RecordingEntity>
-
-    @Query("SELECT * FROM recordings WHERE id = :id")
-    suspend fun getRecordingById(id: Long): RecordingEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRecording(recording: RecordingEntity): Long
-
-    @Update
-    suspend fun updateRecording(recording: RecordingEntity)
-
-    @Delete
-    suspend fun deleteRecording(recording: RecordingEntity)
-}
-
 @Database(
     entities = [
         PlaylistEntity::class,
@@ -235,10 +211,9 @@ interface RecordingDao {
         UserProfileEntity::class,
         DownloadedItemEntity::class,
         CustomFolderEntity::class,
-        WatchHistoryEntity::class,
-        RecordingEntity::class
+        WatchHistoryEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -252,7 +227,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun downloadedItemDao(): DownloadedItemDao
     abstract fun customFolderDao(): CustomFolderDao
-    abstract fun recordingDao(): RecordingDao
 
     companion object {
         @Volatile

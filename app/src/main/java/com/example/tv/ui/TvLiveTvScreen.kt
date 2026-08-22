@@ -16,13 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.AlarmOff
-import androidx.compose.material.icons.filled.FiberManualRecord
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,9 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -42,10 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.material3.Border
-import androidx.tv.material3.ClickableSurfaceDefaults
-import androidx.tv.material3.Icon
-import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.example.data.ShortEpgEntry
@@ -53,7 +40,6 @@ import com.example.model.ChannelEntity
 import com.example.model.XtreamCategoryEntity
 import com.example.tv.theme.TvBg
 import com.example.tv.theme.TvCard
-import com.example.tv.theme.TvFocusBorder
 import com.example.tv.theme.TvPanel
 import com.example.tv.theme.TvRed
 import com.example.tv.theme.TvTextGray
@@ -70,11 +56,6 @@ fun TvLiveTvScreen(
     onLoadCategoryStreams: (categoryId: String) -> Unit,
     onFetchEpg: suspend (ChannelEntity) -> List<ShortEpgEntry> = { emptyList() },
     onPlayChannel: (ChannelEntity) -> Unit,
-    isChannelRecording: (String) -> Boolean = { false },
-    onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
-    onStopRecording: (ChannelEntity) -> Unit = {},
-    isProgramScheduled: (channelId: String, programTitle: String) -> Boolean = { _, _ -> false },
-    onToggleSchedule: (ChannelEntity, ShortEpgEntry, startAtMs: Long, durationMinutes: Int) -> Unit = { _, _, _, _ -> },
     isPreviewPaused: Boolean = false
 ) {
     var selectedCategoryId by remember { mutableStateOf<String?>(null) }
@@ -83,12 +64,6 @@ fun TvLiveTvScreen(
     // المشغّل الرئيسي بملء الشاشة (والذي يفتح فقط عند الضغط الفعلي/OK على القناة)
     var previewChannel by remember { mutableStateOf<ChannelEntity?>(channels.firstOrNull()) }
     var currentEpg by remember { mutableStateOf<List<ShortEpgEntry>>(emptyList()) }
-
-    // كان الانتقال بالريموت من عمود القنوات يميناً نحو زر التسجيل/قسم EPG يفشل غالباً — البحث
-    // المكاني التلقائي في Compose لا يجد مساراً مضموناً عبر الفجوة الكبيرة بين الأعمدة. نُحدِّد
-    // هذا المسار صراحة بدل الاعتماد فقط على الهندسة المكانية التلقائية
-    val recordButtonFocusRequester = remember { FocusRequester() }
-    val epgNowPlayingFocusRequester = remember { FocusRequester() }
 
     // كانت قائمة القنوات تعرض جميع القنوات المحمَّلة محلياً دائماً بلا أي فلترة حسب التصنيف
     // المختار — الضغط على تصنيف كان يُبرزه أحمر (تركيز فقط) ويطلب تحميل قنواته، لكن العمود
@@ -168,8 +143,7 @@ fun TvLiveTvScreen(
                             channel = ch,
                             isPreviewing = previewChannel?.id == ch.id,
                             onFocus = { previewChannel = ch },
-                            onClick = { onPlayChannel(ch) },
-                            rightFocusRequester = recordButtonFocusRequester
+                            onClick = { onPlayChannel(ch) }
                         )
                     }
                 }
@@ -213,36 +187,20 @@ fun TvLiveTvScreen(
                 }
 
                 Spacer(Modifier.height(14.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            channel.name,
-                            color = TvTextWhite,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Press OK on the channel to watch fullscreen",
-                            color = TvTextGray,
-                            fontSize = 12.sp
-                        )
-                    }
-                    val recording = isChannelRecording(channel.id)
-                    val hasNowPlayingEpgButton = currentEpg.any { it.isNowPlaying }
-                    TvRecordButton(
-                        isRecording = recording,
-                        onClick = {
-                            if (recording) onStopRecording(channel)
-                            else onStartRecording(channel, channel.name, 120)
-                        },
-                        modifier = Modifier
-                            .focusRequester(recordButtonFocusRequester)
-                            .focusProperties {
-                                if (hasNowPlayingEpgButton) down = epgNowPlayingFocusRequester
-                            }
+                Column {
+                    Text(
+                        channel.name,
+                        color = TvTextWhite,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Press OK on the channel to watch fullscreen",
+                        color = TvTextGray,
+                        fontSize = 12.sp
                     )
                 }
 
@@ -255,23 +213,7 @@ fun TvLiveTvScreen(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(currentEpg, key = { "${it.title}_${it.start}" }) { entry ->
-                            TvEpgRow(
-                                entry = entry,
-                                isRecording = isChannelRecording(channel.id) && entry.isNowPlaying,
-                                isScheduled = isProgramScheduled(channel.id, entry.title),
-                                onRecordClick = {
-                                    if (isChannelRecording(channel.id)) onStopRecording(channel)
-                                    else onStartRecording(channel, entry.title, estimateEpgDurationMinutes(entry))
-                                },
-                                onScheduleClick = {
-                                    onToggleSchedule(channel, entry, epgEntryStartEpochMs(entry), estimateEpgDurationMinutes(entry))
-                                },
-                                buttonModifier = if (entry.isNowPlaying) {
-                                    Modifier
-                                        .focusRequester(epgNowPlayingFocusRequester)
-                                        .focusProperties { up = recordButtonFocusRequester }
-                                } else Modifier
-                            )
+                            TvEpgRow(entry = entry)
                         }
                     }
                 }
@@ -281,14 +223,7 @@ fun TvLiveTvScreen(
 }
 
 @Composable
-private fun TvEpgRow(
-    entry: ShortEpgEntry,
-    isRecording: Boolean,
-    isScheduled: Boolean,
-    onRecordClick: () -> Unit,
-    onScheduleClick: () -> Unit,
-    buttonModifier: Modifier = Modifier
-) {
+private fun TvEpgRow(entry: ShortEpgEntry) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -317,109 +252,6 @@ private fun TvEpgRow(
                 Text("${entry.start} - ${entry.end}", color = TvTextGray, fontSize = 11.sp)
             }
         }
-        // كل برنامج في الدليل يحتاج زراً يمكن التنقل إليه بالريموت: البرنامج الحالي يعرض
-        // زر تسجيل فوري، وأي برنامج مستقبلي يعرض زر جدولة (بدل الاقتصار على البرنامج الحالي فقط)
-        if (entry.isNowPlaying) {
-            TvRecordButton(isRecording = isRecording, onClick = onRecordClick, compact = true, modifier = buttonModifier)
-        } else {
-            TvScheduleButton(isScheduled = isScheduled, onClick = onScheduleClick, modifier = buttonModifier)
-        }
-    }
-}
-
-/** يقدّر مدة برنامج EPG بالدقائق من نصّي "HH:mm" — يفترض عبور منتصف الليل إن كانت نهايته أصغر من بدايته */
-private fun estimateEpgDurationMinutes(entry: ShortEpgEntry): Int {
-    return try {
-        val (sh, sm) = entry.start.split(":").map { it.toInt() }
-        val (eh, em) = entry.end.split(":").map { it.toInt() }
-        var diff = (eh * 60 + em) - (sh * 60 + sm)
-        if (diff <= 0) diff += 24 * 60
-        diff.coerceIn(5, 6 * 60)
-    } catch (e: Exception) {
-        60
-    }
-}
-
-/** يحوّل بداية برنامج EPG (نص "HH:mm" بلا تاريخ) إلى طابع زمني مطلق قابل لضبطه في AlarmManager:
-    اليوم بنفس الساعة، أو غداً إن كان ذلك الوقت قد مضى بالفعل اليوم (نفس افتراض عبور منتصف الليل
-    المستخدَم في estimateEpgDurationMinutes) */
-private fun epgEntryStartEpochMs(entry: ShortEpgEntry): Long {
-    return try {
-        val (h, m) = entry.start.split(":").map { it.toInt() }
-        val cal = java.util.Calendar.getInstance()
-        val now = cal.timeInMillis
-        cal.set(java.util.Calendar.HOUR_OF_DAY, h)
-        cal.set(java.util.Calendar.MINUTE, m)
-        cal.set(java.util.Calendar.SECOND, 0)
-        cal.set(java.util.Calendar.MILLISECOND, 0)
-        if (cal.timeInMillis <= now) cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
-        cal.timeInMillis
-    } catch (e: Exception) {
-        System.currentTimeMillis() + 60_000L
-    }
-}
-
-@Composable
-private fun TvRecordButton(isRecording: Boolean, onClick: () -> Unit, compact: Boolean = false, modifier: Modifier = Modifier) {
-    TvCircleIconButton(
-        active = isRecording,
-        activeIcon = Icons.Default.Stop,
-        inactiveIcon = Icons.Default.FiberManualRecord,
-        activeDescription = "Stop recording",
-        inactiveDescription = "Record",
-        compact = compact,
-        onClick = onClick,
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun TvScheduleButton(isScheduled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    TvCircleIconButton(
-        active = isScheduled,
-        activeIcon = Icons.Default.AlarmOff,
-        inactiveIcon = Icons.Default.Alarm,
-        activeDescription = "Cancel scheduled recording",
-        inactiveDescription = "Schedule recording",
-        compact = true,
-        onClick = onClick,
-        modifier = modifier
-    )
-}
-
-@Composable
-private fun TvCircleIconButton(
-    active: Boolean,
-    activeIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    inactiveIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    activeDescription: String,
-    inactiveDescription: String,
-    onClick: () -> Unit,
-    compact: Boolean = false,
-    modifier: Modifier = Modifier
-) {
-    val size = if (compact) 32.dp else 44.dp
-    Surface(
-        onClick = onClick,
-        modifier = modifier.size(size),
-        shape = ClickableSurfaceDefaults.shape(shape = CircleShape),
-        colors = ClickableSurfaceDefaults.colors(
-            containerColor = if (active) TvRed else Color.White.copy(alpha = 0.08f),
-            focusedContainerColor = if (active) TvRed else Color.White.copy(alpha = 0.22f)
-        ),
-        border = ClickableSurfaceDefaults.border(
-            border = Border(androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)),
-            focusedBorder = Border(androidx.compose.foundation.BorderStroke(2.dp, TvFocusBorder))
-        )
-    ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Icon(
-                imageVector = if (active) activeIcon else inactiveIcon,
-                contentDescription = if (active) activeDescription else inactiveDescription,
-                tint = Color.White,
-                modifier = Modifier.size(if (compact) 14.dp else 18.dp)
-            )
-        }
     }
 }
 
@@ -428,16 +260,10 @@ private fun TvChannelRow(
     channel: ChannelEntity,
     isPreviewing: Boolean,
     onFocus: () -> Unit,
-    onClick: () -> Unit,
-    rightFocusRequester: FocusRequester? = null
+    onClick: () -> Unit
 ) {
     TvFocusable(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (rightFocusRequester != null) Modifier.focusProperties { right = rightFocusRequester }
-                else Modifier
-            ),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         onFocus = onFocus,
         onClick = onClick

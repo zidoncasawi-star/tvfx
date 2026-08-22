@@ -181,7 +181,6 @@ class MainActivity : ComponentActivity() {
 
                 val currentlyPlaying by viewModel.currentlyPlaying.collectAsStateWithLifecycle()
                 val mediaDetail by viewModel.mediaDetail.collectAsStateWithLifecycle()
-                val recordings by viewModel.recordings.collectAsStateWithLifecycle()
                 val showSplash by viewModel.showSplash.collectAsStateWithLifecycle()
 
                 if (showSplash) {
@@ -465,12 +464,7 @@ class MainActivity : ComponentActivity() {
                                     onLoadCategoryStreams = { viewModel.loadStreamsByCategory(it, "live") },
                                     onExit = { viewModel.setTab(MainTab.HOME) },
                                     isFullPlayerActive = currentlyPlaying != null,
-                                    onFetchEpg = { channel -> viewModel.fetchShortEpgForChannel(channel) },
-                                    isChannelRecording = { id -> viewModel.isChannelRecording(id) },
-                                    onStartRecording = { ch, title, minutes -> viewModel.startRecording(ch, title, minutes) },
-                                    onStopRecording = { ch ->
-                                        viewModel.activeRecordingForChannel(ch.id)?.let { viewModel.stopRecording(it.id) }
-                                    }
+                                    onFetchEpg = { channel -> viewModel.fetchShortEpgForChannel(channel) }
                                 )
 
                                 MainTab.MOVIES -> MoviesScreen(
@@ -504,22 +498,6 @@ class MainActivity : ComponentActivity() {
                                     onToggleChannelFav = { viewModel.toggleChannelFavorite(it) },
                                     onToggleMovieFav = { viewModel.toggleMovieFavorite(it) },
                                     onToggleSeriesFav = { viewModel.toggleSeriesFavorite(it) }
-                                )
-
-                                MainTab.RECORDINGS -> RecordingsScreen(
-                                    recordings = recordings,
-                                    onPlayRecording = { rec ->
-                                        viewModel.playMedia(
-                                            com.example.ui.viewmodel.PlayingMedia(
-                                                id = "rec_${rec.id}",
-                                                title = rec.programTitle.ifBlank { rec.channelName },
-                                                streamUrl = "file://${rec.filePath}",
-                                                type = "MOVIE"
-                                            )
-                                        )
-                                    },
-                                    onStopRecording = { viewModel.stopRecording(it.id) },
-                                    onDeleteRecording = { viewModel.deleteRecording(it) }
                                 )
 
                                 MainTab.USER_ACCOUNT -> UserAccountSection(
@@ -762,7 +740,6 @@ class MainActivity : ComponentActivity() {
                                 MainTab.MOVIES to (Icons.Default.Movie to "movies"),
                                 MainTab.SERIES to (Icons.Default.VideoLibrary to "series"),
                                 MainTab.FAVORITES to (Icons.Default.Favorite to "favorites"),
-                                MainTab.RECORDINGS to (Icons.Default.FiberManualRecord to "recordings"),
                                 MainTab.USER_ACCOUNT to (Icons.Default.AccountCircle to "my_account")
                             )
                             Surface(

@@ -94,9 +94,6 @@ fun TvPlayerView(
     onProgressUpdate: (positionMs: Long, durationMs: Long) -> Unit = { _, _ -> },
     onChannelSelect: (ChannelEntity) -> Unit = {},
     onEpisodeSelect: (Episode) -> Unit = {},
-    isChannelRecording: (String) -> Boolean = { false },
-    onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
-    onStopRecording: (ChannelEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -367,7 +364,7 @@ fun TvPlayerView(
                 }
 
                 // أزرار الريموت الفعلية المخصَّصة للبث المباشر: CH+/CH- لتبديل القناة مباشرة بدون
-                // فتح القائمة، زر REC لتسجيل القناة الحالية فوراً، وزر EPG/Guide لفتح قائمة القنوات
+                // فتح القائمة، وزر EPG/Guide لفتح قائمة القنوات
                 if (type == "LIVE") {
                     when (event.nativeKeyEvent.keyCode) {
                         android.view.KeyEvent.KEYCODE_CHANNEL_UP -> {
@@ -376,13 +373,6 @@ fun TvPlayerView(
                         }
                         android.view.KeyEvent.KEYCODE_CHANNEL_DOWN -> {
                             switchChannel(-1)
-                            return@onKeyEvent true
-                        }
-                        android.view.KeyEvent.KEYCODE_MEDIA_RECORD, android.view.KeyEvent.KEYCODE_PROG_RED -> {
-                            currentChannel?.let { ch ->
-                                if (isChannelRecording(ch.id)) onStopRecording(ch)
-                                else onStartRecording(ch, ch.name, 120)
-                            }
                             return@onKeyEvent true
                         }
                         android.view.KeyEvent.KEYCODE_GUIDE -> {
@@ -519,18 +509,6 @@ fun TvPlayerView(
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if (type == "LIVE" && currentChannel != null) {
-                            val recording = isChannelRecording(currentChannel.id)
-                            TvIconButton(
-                                icon = if (recording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
-                                contentDescription = if (recording) "Stop recording" else "Record",
-                                active = recording,
-                                onClick = {
-                                    if (recording) onStopRecording(currentChannel)
-                                    else onStartRecording(currentChannel, currentChannel.name, 120)
-                                }
-                            )
-                        }
                         TvIconButton(
                             icon = Icons.Default.Timer,
                             contentDescription = "Sleep timer",

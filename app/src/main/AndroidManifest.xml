@@ -4,14 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- لخدمة تسجيل البث المباشر (DVR) التي تعمل في الخلفية أثناء التسجيل -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- لتسجيل EPG المجدوَل: تشغيل منبّه دقيق عند حلول وقت البرنامج حتى لو كان التطبيق مغلقاً،
-         وإعادة ضبطه بعد إعادة تشغيل الجهاز (AlarmManager يفقد كل المنبّهات عند إيقاف التشغيل) -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- التطبيق يعمل على الهاتف والتلفاز معاً من نفس الحزمة: يبقى Leanback اختيارياً (required=false)
          حتى لا يستبعد متجر Play التطبيق من أجهزة الهاتف العادية، ونفس الشيء بالنسبة لشاشة اللمس -->
@@ -74,23 +66,6 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".data.RecordingService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <receiver
-            android:name=".data.RecordingAlarmReceiver"
-            android:exported="false" />
-
-        <receiver
-            android:name=".data.BootRecordingRescheduleReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>

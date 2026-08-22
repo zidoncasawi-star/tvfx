@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Movie
@@ -52,8 +51,7 @@ private val NAV_ITEMS = listOf(
     TvNavItem(MainTab.LIVE_TV, Icons.Default.Tv),
     TvNavItem(MainTab.MOVIES, Icons.Default.Movie),
     TvNavItem(MainTab.SERIES, Icons.Default.VideoLibrary),
-    TvNavItem(MainTab.FAVORITES, Icons.Default.Favorite),
-    TvNavItem(MainTab.RECORDINGS, Icons.Default.FiberManualRecord)
+    TvNavItem(MainTab.FAVORITES, Icons.Default.Favorite)
 )
 
 /**

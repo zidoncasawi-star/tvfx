@@ -54,9 +54,6 @@ fun LiveTvScreen(
     onExit: () -> Unit,
     isFullPlayerActive: Boolean = false,
     onFetchEpg: suspend (ChannelEntity) -> List<com.example.data.ShortEpgEntry> = { emptyList() },
-    isChannelRecording: (String) -> Boolean = { false },
-    onStartRecording: (ChannelEntity, String, Int) -> Unit = { _, _, _ -> },
-    onStopRecording: (ChannelEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
@@ -410,19 +407,6 @@ fun LiveTvScreen(
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
                             )
-                            val recording = isChannelRecording(previewChannel!!.id)
-                            IconButton(
-                                onClick = {
-                                    val ch = previewChannel!!
-                                    if (recording) onStopRecording(ch) else onStartRecording(ch, ch.name, 120)
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = if (recording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
-                                    contentDescription = if (recording) "إيقاف التسجيل" else "تسجيل",
-                                    tint = if (recording) NetflixRed else Color.White
-                                )
-                            }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
@@ -436,15 +420,7 @@ fun LiveTvScreen(
                         } else {
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 items(currentEpg) { program ->
-                                    EpgProgramCard(
-                                        program = program,
-                                        isRecording = program.isNowPlaying && isChannelRecording(previewChannel!!.id),
-                                        onRecordClick = {
-                                            val ch = previewChannel!!
-                                            if (isChannelRecording(ch.id)) onStopRecording(ch)
-                                            else onStartRecording(ch, program.title, estimateEpgDurationMinutes(program))
-                                        }
-                                    )
+                                    EpgProgramCard(program = program)
                                 }
                             }
                         }
@@ -546,21 +522,8 @@ fun LiveTvScreen(
     }
 }
 
-/** يقدّر مدة برنامج EPG بالدقائق من نصّي "HH:mm" — يفترض عبور منتصف الليل إن كانت نهايته أصغر من بدايته */
-private fun estimateEpgDurationMinutes(entry: com.example.data.ShortEpgEntry): Int {
-    return try {
-        val (sh, sm) = entry.start.split(":").map { it.toInt() }
-        val (eh, em) = entry.end.split(":").map { it.toInt() }
-        var diff = (eh * 60 + em) - (sh * 60 + sm)
-        if (diff <= 0) diff += 24 * 60
-        diff.coerceIn(5, 6 * 60)
-    } catch (e: Exception) {
-        60
-    }
-}
-
 @Composable
-private fun EpgProgramCard(program: com.example.data.ShortEpgEntry, isRecording: Boolean = false, onRecordClick: () -> Unit = {}) {
+private fun EpgProgramCard(program: com.example.data.ShortEpgEntry) {
     Column(
         modifier = Modifier
             .width(190.dp)
@@ -570,25 +533,15 @@ private fun EpgProgramCard(program: com.example.data.ShortEpgEntry, isRecording:
             )
             .padding(10.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            if (program.isNowPlaying) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(NetflixRed, RoundedCornerShape(3.dp))
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "الآن", color = NetflixRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-                IconButton(onClick = onRecordClick, modifier = Modifier.size(24.dp)) {
-                    Icon(
-                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.FiberManualRecord,
-                        contentDescription = if (isRecording) "إيقاف التسجيل" else "تسجيل",
-                        tint = if (isRecording) NetflixRed else Color.White,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
+        if (program.isNowPlaying) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(NetflixRed, RoundedCornerShape(3.dp))
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = "الآن", color = NetflixRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
         if (program.isNowPlaying) {
