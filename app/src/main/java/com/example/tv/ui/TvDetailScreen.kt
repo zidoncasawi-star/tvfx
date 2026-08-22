@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -36,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.example.model.Episode
@@ -215,7 +221,10 @@ fun TvDetailScreen(
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                     if (seasons.isNotEmpty()) {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.focusRestorer()
+                        ) {
                             itemsIndexed(seasons, key = { _, s -> s }) { index, s ->
                                 val active = s == selectedSeason
                                 TvFocusable(
@@ -239,45 +248,81 @@ fun TvDetailScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                     }
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        itemsIndexed(episodes.filter { it.seasonNum == selectedSeason }, key = { _, ep -> ep.id }) { index, ep ->
-                            TvFocusable(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .then(
-                                        if (index == 0 && !episodesEntryIsSeasonChip) {
-                                            Modifier
-                                                .focusRequester(episodesEntryFocusRequester)
-                                                .focusProperties { left = favoritesFocusRequester }
-                                        } else Modifier
-                                    ),
-                                shape = RoundedCornerShape(8.dp),
-                                onClick = { onPlayEpisode(ep) }
-                            ) { _ ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        "${ep.episodeNum}",
-                                        color = TvTextGray,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        modifier = Modifier.width(30.dp)
-                                    )
-                                    Text(
-                                        ep.title,
-                                        color = Color(0xFFEEEEEE),
-                                        fontSize = 13.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
+                    val seasonEpisodes = episodes.filter { it.seasonNum == selectedSeason }
+                    if (seasonEpisodes.isEmpty()) {
+                        Text("No episodes found for this season.", color = TvTextGray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.focusRestorer()
+                        ) {
+                            itemsIndexed(seasonEpisodes, key = { _, ep -> ep.id }) { index, ep ->
+                                TvEpisodeRow(
+                                    episode = ep,
+                                    onClick = { onPlayEpisode(ep) },
+                                    modifier = if (index == 0 && !episodesEntryIsSeasonChip) {
+                                        Modifier
+                                            .focusRequester(episodesEntryFocusRequester)
+                                            .focusProperties { left = favoritesFocusRequester }
+                                    } else Modifier
+                                )
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * صف حلقة — كان الصف بأكمله قابلاً للضغط ضمنياً (زر OK يشغّل الحلقة) دون أي أيقونة أو مؤشر
+ * بصري يدل على ذلك، فبدا للمستخدم وكأنه لا يوجد "زر تشغيل" للحلقات إطلاقاً. أضفنا أيقونة تشغيل
+ * دائرية صريحة في نهاية كل صف، تتحول للأحمر عند التركيز عليها لتأكيد إمكانية الضغط بوضوح.
+ */
+@Composable
+private fun TvEpisodeRow(episode: Episode, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    TvFocusable(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        onClick = onClick
+    ) { focused ->
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "${episode.episodeNum}",
+                color = TvTextGray,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                modifier = Modifier.width(30.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    episode.title,
+                    color = Color(0xFFEEEEEE),
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (episode.duration.isNotBlank()) {
+                    Text(episode.duration, color = TvTextGray, fontSize = 11.sp)
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(if (focused) TvRed else Color.White.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play episode",
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
