@@ -79,12 +79,21 @@ fun TvHomeScreen(
     onResumeHistory: (WatchHistoryEntity) -> Unit,
     onPlayMovie: (MovieEntity) -> Unit = onMovieClick
 ) {
-    val heroSlides = remember(movies, series) {
-        val fromMovies = movies.take(15).shuffled().take(3)
-            .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, movie = it) }
-        val fromSeries = series.take(10).shuffled().take(2)
-            .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, series = it) }
-        (fromMovies + fromSeries).ifEmpty { listOf(HeroItem("FXTV PLAYER", "", "Connect a playlist to get started.", "")) }
+    // كانت هذه القائمة تُعاد حسابها (بما فيها .shuffled()) في كل مرة تتغيّر فيها movies/series —
+    // وبما أن الرئيسية تُحمِّل تصنيفاً جديداً تلقائياً كلما اقترب المستخدم من الأسفل (كل تحميل
+    // يُدرِج بيانات جديدة في Room فتُصدر كل الـFlow قائمة جديدة)، كانت لافتة الهيرو تُعاد خلطها
+    // عشوائياً بصمت في الخلفية أثناء تصفح المستخدم فعلياً — يتنافس هذا الحساب المتكرر (تصفية +
+    // خلط قوائم) مع معالجة ضغطات الريموت على نفس الخيط، وكانت اللافتة تقفز لمحتوى عشوائي مختلف
+    // بلا سبب واضح للمستخدم. الآن تُختار مرة واحدة فقط عند وصول أول بيانات، لا تتغيّر بعدها
+    var heroSlides by remember { mutableStateOf<List<HeroItem>>(emptyList()) }
+    LaunchedEffect(movies.isNotEmpty(), series.isNotEmpty()) {
+        if (heroSlides.isEmpty() && (movies.isNotEmpty() || series.isNotEmpty())) {
+            val fromMovies = movies.take(15).shuffled().take(3)
+                .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, movie = it) }
+            val fromSeries = series.take(10).shuffled().take(2)
+                .map { HeroItem(it.title, "${it.releaseYear} · ${it.rating}★", it.plot, it.backdropUrl.ifBlank { it.posterUrl }, series = it) }
+            heroSlides = (fromMovies + fromSeries).ifEmpty { listOf(HeroItem("FXTV PLAYER", "", "Connect a playlist to get started.", "")) }
+        }
     }
     var heroIndex by remember { mutableIntStateOf(0) }
 
@@ -168,20 +177,27 @@ fun TvHomeScreen(
             // السابق تماماً بدل العودة لنفس الملصق الذي فُتح منه
             .focusRestorer()
     ) {
-        item {
-            TvHeroBanner(
-                item = heroSlides[heroIndex],
-                dotsCount = heroSlides.size,
-                activeDot = heroIndex,
-                onPlay = {
-                    val slide = heroSlides[heroIndex]
-                    slide.movie?.let { onPlayMovie(it) } ?: slide.series?.let { onSeriesClick(it) }
-                },
-                onMoreInfo = {
-                    val slide = heroSlides[heroIndex]
-                    slide.movie?.let { onMovieClick(it) } ?: slide.series?.let { onSeriesClick(it) }
-                }
-            )
+        // heroSlides يبدأ فارغاً الآن (يُملأ لاحقاً داخل LaunchedEffect أعلاه) بدل أن يكون
+        // جاهزاً فوراً كسابقاً — بلا هذا الشرط، الوصول لـ heroSlides[heroIndex] في أول رسم
+        // للشاشة قبل اكتمال الـ LaunchedEffect كان سيتسبب بانهيار فوري (IndexOutOfBoundsException)
+        if (heroSlides.isNotEmpty()) {
+            item {
+                TvHeroBanner(
+                    item = heroSlides[heroIndex],
+                    dotsCount = heroSlides.size,
+                    activeDot = heroIndex,
+                    onPlay = {
+                        heroSlides.getOrNull(heroIndex)?.let { slide ->
+                            slide.movie?.let { onPlayMovie(it) } ?: slide.series?.let { onSeriesClick(it) }
+                        }
+                    },
+                    onMoreInfo = {
+                        heroSlides.getOrNull(heroIndex)?.let { slide ->
+                            slide.movie?.let { onMovieClick(it) } ?: slide.series?.let { onSeriesClick(it) }
+                        }
+                    }
+                )
+            }
         }
 
         if (watchHistory.isNotEmpty()) {
