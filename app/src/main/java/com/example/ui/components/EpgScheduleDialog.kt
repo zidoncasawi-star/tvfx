@@ -39,28 +39,28 @@ fun EpgScheduleDialog(
 ) {
     val epgPrograms = listOf(
         EpgProgramItem(
-            title = channel.epgNow.ifEmpty { "البث المباشر للقناة" },
-            timeRange = "19:00 - 20:30 (الآن)",
-            description = "تغطية مباشرة لأبرز الأحداث والمباريات مع الاستوديو التحليلي المميز.",
+            title = channel.epgNow.ifEmpty { "Live Channel Broadcast" },
+            timeRange = "19:00 - 20:30 (Now)",
+            description = "Live coverage of top events and matches with our featured analysis studio.",
             isCurrent = true,
             progress = 0.65f
         ),
         EpgProgramItem(
-            title = channel.epgNext.ifEmpty { "البرنامج التالي" },
+            title = channel.epgNext.ifEmpty { "Next Program" },
             timeRange = "20:30 - 21:30",
-            description = "تحليل شامل وأبرز لقطات وأهداف اليوم مع نخبة من الخبراء.",
+            description = "Comprehensive analysis and today's top highlights and goals with a panel of experts.",
             isCurrent = false
         ),
         EpgProgramItem(
-            title = "الأخبار والحصاد الرياضي",
+            title = "Sports News & Roundup",
             timeRange = "21:30 - 22:30",
-            description = "متابعة إخبارية سريعة لآخر التطورات الرياضية العالمية والمحلية.",
+            description = "Quick news coverage of the latest global and local sports developments.",
             isCurrent = false
         ),
         EpgProgramItem(
-            title = "السهرة السينمائية الوثائقية",
+            title = "Documentary Movie Night",
             timeRange = "22:30 - 00:00",
-            description = "عرض حصرية لقصة إنجازات وتاريخ الرياضيين العظماء عبر العصور.",
+            description = "Exclusive showing of the achievements and history of great athletes through the ages.",
             isCurrent = false
         )
     )
@@ -96,7 +96,7 @@ fun EpgScheduleDialog(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "دليل البرامج الإلكتروني (EPG)",
+                            text = "Electronic Program Guide (EPG)",
                             fontSize = 11.sp,
                             color = Color.Gray
                         )
@@ -104,7 +104,7 @@ fun EpgScheduleDialog(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.LightGray)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.LightGray)
                 }
             }
         },
@@ -158,7 +158,7 @@ fun EpgScheduleDialog(
                                             shape = RoundedCornerShape(4.dp)
                                         ) {
                                             Text(
-                                                text = "مباشر الان",
+                                                text = "Live Now",
                                                 color = Color.White,
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -211,12 +211,12 @@ fun EpgScheduleDialog(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = NetflixRed)
             ) {
-                Text("مشاهدة القناة الآن", color = Color.White)
+                Text("Watch Channel Now", color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("إغلاق", color = Color.Gray)
+                Text("Close", color = Color.Gray)
             }
         }
     )

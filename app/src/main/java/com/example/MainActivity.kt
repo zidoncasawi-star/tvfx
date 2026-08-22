@@ -272,7 +272,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Download,
-                                                contentDescription = "التنزيلات أوفلاين",
+                                                contentDescription = "Offline Downloads",
                                                 tint = Color.LightGray
                                             )
                                         }
@@ -306,7 +306,7 @@ class MainActivity : ComponentActivity() {
                                     IconButton(onClick = { showSettingsDialog = true }) {
                                         Icon(
                                             imageVector = Icons.Default.Settings,
-                                            contentDescription = "الإعدادات",
+                                            contentDescription = "Settings",
                                             tint = Color.LightGray,
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -380,7 +380,7 @@ class MainActivity : ComponentActivity() {
                                 )
                                 Spacer(modifier = Modifier.height(18.dp))
                                 Text(
-                                    text = "الاشتراك غير نشط 🔒",
+                                    text = "Subscription Inactive 🔒",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color.White,
@@ -388,7 +388,7 @@ class MainActivity : ComponentActivity() {
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "بانتظار تفعيل اشتراكك من قبل الإدارة لتتمكن من الوصول لكامل محتوى البث التلفزيوني والأفلام والمسلسلات.",
+                                    text = "Waiting for your subscription to be activated by the admin so you can access all live TV, movies, and series content.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.LightGray,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -407,7 +407,7 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier.padding(16.dp),
                                         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
                                     ) {
-                                        Text("كود التفعيل الخاص بك", fontSize = 11.sp, color = Color.Gray)
+                                        Text("Your Activation Code", fontSize = 11.sp, color = Color.Gray)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = currentAccount.activationCode,
@@ -427,7 +427,7 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     Icon(Icons.Default.AccountCircle, contentDescription = null)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("صفحة الحساب والتفعيل", fontWeight = FontWeight.Bold)
+                                    Text("Account & Activation Page", fontWeight = FontWeight.Bold)
                                 }
                             }
                         } else {
@@ -638,7 +638,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.playMedia(
                                         PlayingMedia(
                                             id = item.id,
-                                            title = "${item.title} (أوفلاين)",
+                                            title = "${item.title} (Offline)",
                                             streamUrl = item.streamUrl,
                                             posterUrl = item.posterUrl,
                                             type = item.itemType
@@ -714,7 +714,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                     Spacer(modifier = Modifier.height(24.dp))
                                     Text(
-                                        text = "جاري استيراد وتحليل المحتوى...",
+                                        text = "Importing and analyzing content...",
                                         color = Color.White,
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
@@ -722,7 +722,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = if (importStatusText.isNotBlank()) importStatusText else "يرجى الانتظار، يتم الآن مزامنة المحتوى لتجربة مشاهدة مثالية.",
+                                        text = if (importStatusText.isNotBlank()) importStatusText else "Please wait, content is being synced for the best viewing experience.",
                                         color = Color.Gray,
                                         fontSize = 13.sp,
                                         textAlign = TextAlign.Center,

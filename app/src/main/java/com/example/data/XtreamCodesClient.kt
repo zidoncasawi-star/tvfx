@@ -45,9 +45,9 @@ object XtreamCodesClient {
                         val obj = array.getJSONObject(i)
                         val streamId = obj.optString("stream_id")
                         if (streamId.isNullOrBlank()) continue
-                        val name = obj.optString("name", "قناة ${i + 1}")
+                        val name = obj.optString("name", "Channel ${i + 1}")
                         val logo = obj.optString("stream_icon", "")
-                        val categoryName = obj.optString("category_name", "عام")
+                        val categoryName = obj.optString("category_name", "General")
                         val num = obj.optInt("num", i + 1)
 
                         val streamUrl = "$serverUrl/live/$username/$password/$streamId.m3u8"
@@ -83,11 +83,11 @@ object XtreamCodesClient {
                         val obj = array.getJSONObject(i)
                         val streamId = obj.optString("stream_id")
                         if (streamId.isNullOrBlank()) continue
-                        val name = obj.optString("name", "فيلم ${i + 1}")
+                        val name = obj.optString("name", "Movie ${i + 1}")
                         val logo = obj.optString("stream_icon", "")
                         val ext = obj.optString("container_extension", "mp4").ifBlank { "mp4" }
                         val rating = obj.optString("rating", "8.0")
-                        val categoryName = obj.optString("category_name", "أفلام")
+                        val categoryName = obj.optString("category_name", "Movies")
 
                         val streamUrl = "$serverUrl/movie/$username/$password/$streamId.$ext"
                         movies.add(
@@ -124,10 +124,10 @@ object XtreamCodesClient {
                         val obj = array.getJSONObject(i)
                         val seriesId = obj.optString("series_id")
                         if (seriesId.isNullOrBlank()) continue
-                        val name = obj.optString("name", "مسلسل ${i + 1}")
+                        val name = obj.optString("name", "Series ${i + 1}")
                         val logo = obj.optString("cover", "")
                         val rating = obj.optString("rating", "8.5")
-                        val categoryName = obj.optString("category_name", "مسلسلات")
+                        val categoryName = obj.optString("category_name", "Series")
 
                         series.add(
                             SeriesEntity(
@@ -184,7 +184,7 @@ object XtreamCodesClient {
                 for (i in 0 until array.length()) {
                     val obj = array.getJSONObject(i)
                     val id = obj.optString("category_id")
-                    val name = obj.optString("category_name", "غير معروف")
+                    val name = obj.optString("category_name", "Unknown")
                     if (id.isNotBlank()) {
                         categories.add(
                             com.example.model.XtreamCategoryEntity(
@@ -379,7 +379,7 @@ object XtreamCodesClient {
                                     val epObj = epArray.getJSONObject(i)
                                     val id = epObj.optString("id")
                                     if (id.isNullOrBlank()) continue
-                                    val title = epObj.optString("title", "الحلقة ${i + 1}")
+                                    val title = epObj.optString("title", "Episode ${i + 1}")
                                     val epNum = epObj.optInt("episode_num", i + 1)
                                     val ext = epObj.optString("container_extension", "mp4").ifBlank { "mp4" }
                                     
@@ -392,7 +392,7 @@ object XtreamCodesClient {
                                             episodeNum = epNum,
                                             title = title,
                                             streamUrl = streamUrl,
-                                            duration = "45 دقيقة",
+                                            duration = "45 min",
                                             plot = ""
                                         )
                                     )

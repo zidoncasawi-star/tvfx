@@ -38,7 +38,7 @@ fun FavoritesScreen(
             contentAlignment = androidx.compose.ui.Alignment.Center
         ) {
             Text(
-                text = "قائمتك المفضلة فارغة حالياً\nقم بإضافة القنوات أو الأفلام المفضلة بالضغط على رمز القلب ❤️",
+                text = "Your favorites list is currently empty\nAdd favorite channels or movies by tapping the heart icon ❤️",
                 style = MaterialTheme.typography.bodyLarge,
                 color = androidx.compose.ui.graphics.Color.Gray,
                 fontWeight = FontWeight.Medium,
@@ -54,7 +54,7 @@ fun FavoritesScreen(
             if (favChannels.isNotEmpty()) {
                 item {
                     ChannelHorizontalList(
-                        title = "القنوات المفضلة ❤️",
+                        title = "Favorite Channels ❤️",
                         channels = favChannels,
                         onChannelClick = { ch ->
                             onPlayChannel(
@@ -77,7 +77,7 @@ fun FavoritesScreen(
             if (favMovies.isNotEmpty()) {
                 item {
                     MovieHorizontalList(
-                        title = "الأفلام المفضلة 🎬",
+                        title = "Favorite Movies 🎬",
                         movies = favMovies,
                         onMovieClick = onMovieClick,
                         onFavoriteToggle = onToggleMovieFav
@@ -88,7 +88,7 @@ fun FavoritesScreen(
             if (favSeries.isNotEmpty()) {
                 item {
                     SeriesHorizontalList(
-                        title = "المسلسلات المفضلة 📺",
+                        title = "Favorite Series 📺",
                         seriesList = favSeries,
                         onSeriesClick = onSeriesClick,
                         onFavoriteToggle = onToggleSeriesFav

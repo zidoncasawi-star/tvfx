@@ -35,7 +35,7 @@ fun MoviesScreen(
     var sortOption by remember { mutableStateOf(SortOption.DEFAULT) }
 
     val categories = remember(movies, xtreamCategories) {
-        val list = mutableListOf("الكل")
+        val list = mutableListOf("All")
         if (xtreamCategories.isNotEmpty()) {
             list.addAll(xtreamCategories.map { it.id })
         } else {
@@ -46,14 +46,14 @@ fun MoviesScreen(
 
     val categoryNames = remember(movies, xtreamCategories) {
         val map = mutableMapOf<String, String>()
-        map["الكل"] = "الكل"
+        map["All"] = "All"
         xtreamCategories.forEach { map[it.id] = it.name }
         movies.forEach { if (!map.containsKey(it.category)) map[it.category] = it.category }
         map
     }
 
     LaunchedEffect(selectedCategory) {
-        if (selectedCategory != "الكل" && xtreamCategories.any { it.id == selectedCategory }) {
+        if (selectedCategory != "All" && xtreamCategories.any { it.id == selectedCategory }) {
             val hasMovies = movies.any { it.category == selectedCategory }
             if (!hasMovies) {
                 onLoadCategoryStreams(selectedCategory)
@@ -70,7 +70,7 @@ fun MoviesScreen(
 
     val filteredMovies = remember(movies, selectedCategory, searchQuery, sortOption) {
         val filtered = movies.filter {
-            (selectedCategory == "الكل" || it.category == selectedCategory) &&
+            (selectedCategory == "All" || it.category == selectedCategory) &&
                     (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
         }
         when (sortOption) {
@@ -88,12 +88,12 @@ fun MoviesScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("بحث في مكتبة الأفلام...", color = Color.Gray) },
+            placeholder = { Text("Search movie library...", color = Color.Gray) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NetflixRed) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray)
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray)
                     }
                 }
             },
@@ -132,7 +132,7 @@ fun MoviesScreen(
                 )
             }
 
-            if (selectedCategory == "الكل" && searchQuery.isEmpty() && nextUnloadedCategory != null) {
+            if (selectedCategory == "All" && searchQuery.isEmpty() && nextUnloadedCategory != null) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
@@ -145,7 +145,7 @@ fun MoviesScreen(
                                 isLoadingMore = true
                                 onLoadCategoryStreams(nextUnloadedCategory.id)
                             }) {
-                                Text("تحميل المزيد من التصنيفات")
+                                Text("Load More Categories")
                             }
                         }
                     }

@@ -52,7 +52,7 @@ fun OfflineDownloadsDialog(
                         tint = NetflixRed
                     )
                     Text(
-                        text = "التنزيلات أوفلاين (Offline)",
+                        text = "Offline Downloads",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -60,7 +60,7 @@ fun OfflineDownloadsDialog(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.Gray)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
                 }
             }
         },
@@ -85,7 +85,7 @@ fun OfflineDownloadsDialog(
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            text = "شبكة Wi-Fi متصلة - مساحة التخزين المحلية المتاحة: 42.5 جيجابايت",
+                            text = "Wi-Fi network connected - Available local storage: 42.5 GB",
                             fontSize = 11.sp,
                             color = Color(0xFFE0E0E0)
                         )
@@ -108,12 +108,12 @@ fun OfflineDownloadsDialog(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "لا توجد أفلام أو مسلسلات محملة حالياً",
+                                text = "No movies or series currently downloaded",
                                 fontSize = 13.sp,
                                 color = Color.Gray
                             )
                             Text(
-                                text = "يمكنك ضغط أيقونة التحميل عند تصفح الأفلام لمشاهدتها بدون إنترنت",
+                                text = "You can tap the download icon while browsing movies to watch them without internet",
                                 fontSize = 11.sp,
                                 color = Color.DarkGray
                             )
@@ -170,7 +170,7 @@ fun OfflineDownloadsDialog(
                                                     shape = RoundedCornerShape(4.dp)
                                                 ) {
                                                     Text(
-                                                        text = "مكتمل",
+                                                        text = "Complete",
                                                         fontSize = 9.sp,
                                                         color = Color(0xFF00E676),
                                                         fontWeight = FontWeight.Bold,
@@ -178,7 +178,7 @@ fun OfflineDownloadsDialog(
                                                     )
                                                 }
                                                 Text(
-                                                    text = "${item.fileSizeMb} ميجابايت",
+                                                    text = "${item.fileSizeMb} MB",
                                                     fontSize = 11.sp,
                                                     color = Color.LightGray
                                                 )
@@ -202,7 +202,7 @@ fun OfflineDownloadsDialog(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.PlayArrow,
-                                                contentDescription = "تشغيل أوفلاين",
+                                                contentDescription = "Play offline",
                                                 tint = Color.White,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -211,7 +211,7 @@ fun OfflineDownloadsDialog(
                                         IconButton(onClick = { onDeleteDownload(item.id) }) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
-                                                contentDescription = "حذف الملف",
+                                                contentDescription = "Delete file",
                                                 tint = Color.Gray,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -226,7 +226,7 @@ fun OfflineDownloadsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("إغلاق", color = Color.Gray)
+                Text("Close", color = Color.Gray)
             }
         }
     )

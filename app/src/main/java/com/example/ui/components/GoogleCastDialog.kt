@@ -76,7 +76,7 @@ fun GoogleCastDialog(
                         tint = NetflixRed
                     )
                     Text(
-                        text = "البث المباشر (Google Cast / Miracast)",
+                        text = "Cast (Google Cast / Miracast)",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -84,7 +84,7 @@ fun GoogleCastDialog(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.LightGray)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.LightGray)
                 }
             }
         },
@@ -109,14 +109,14 @@ fun GoogleCastDialog(
                         ) {
                             Icon(Icons.Default.ScreenShare, contentDescription = null, tint = NetflixRed)
                             Text(
-                                text = "العرض اللاسلكي لشاشات Kindlink / MORSAT",
+                                text = "Wireless Display for Kindlink / MORSAT Screens",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 color = Color.White
                             )
                         }
                         Text(
-                            text = "شاشة SMART_TV (SWTV-24AE-FHD-Miracast) تنتظر اتصال انعكاس الشاشة المباشر (Wireless Display / Miracast) مثل جهاز الكمبيوتر.",
+                            text = "SMART_TV screen (SWTV-24AE-FHD-Miracast) is waiting for a direct screen mirroring connection (Wireless Display / Miracast) like a computer.",
                             fontSize = 11.sp,
                             color = Color.LightGray
                         )
@@ -141,7 +141,7 @@ fun GoogleCastDialog(
                                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                                 context.startActivity(intent)
                                             } catch (e3: Exception) {
-                                                Toast.makeText(context, "يرجى فتح قائمة 'بث الشاشة' من إعدادات الهاتف", Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, "Please open the 'Screen Cast' menu from your phone settings", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }
@@ -153,7 +153,7 @@ fun GoogleCastDialog(
                             ) {
                                 Icon(Icons.Default.Cast, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("بدء انعكاس Miracast", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text("Start Miracast Mirroring", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             }
 
                             OutlinedButton(
@@ -162,14 +162,14 @@ fun GoogleCastDialog(
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     val clip = ClipData.newPlainText("Media Stream Link", streamUrl)
                                     clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, "تم نسخ رابط البث المباشر للشاشة!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Screen stream link copied!", Toast.LENGTH_SHORT).show()
                                 },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                             ) {
                                 Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("نسخ رابط البث", fontSize = 11.sp)
+                                Text("Copy Stream Link", fontSize = 11.sp)
                             }
                         }
                     }
@@ -197,14 +197,14 @@ fun GoogleCastDialog(
                                 Icon(Icons.Default.Cast, contentDescription = null, tint = NetflixRed)
                                 Column {
                                     Text(
-                                        text = "متصل بـ: $currentConnectedDevice",
+                                        text = "Connected to: $currentConnectedDevice",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp,
                                         color = Color.White
                                     )
                                     if (mediaTitle.isNotEmpty()) {
                                         Text(
-                                            text = "جاري بث: $mediaTitle",
+                                            text = "Now casting: $mediaTitle",
                                             fontSize = 11.sp,
                                             color = Color.LightGray
                                         )
@@ -217,7 +217,7 @@ fun GoogleCastDialog(
                                 colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                             ) {
-                                Text("قطع الاتصال", fontSize = 11.sp, color = Color.White)
+                                Text("Disconnect", fontSize = 11.sp, color = Color.White)
                             }
                         }
                     }
@@ -238,7 +238,7 @@ fun GoogleCastDialog(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("ربط جهاز جديد", fontSize = 12.sp)
+                        Text("Add New Device", fontSize = 12.sp)
                     }
 
                     Button(
@@ -257,13 +257,13 @@ fun GoogleCastDialog(
                             Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(if (isScanning) "جاري البحث..." else "مسح الشبكة", fontSize = 12.sp)
+                        Text(if (isScanning) "Searching..." else "Scan Network", fontSize = 12.sp)
                     }
                 }
 
                 LaunchedEffect(isScanning) {
                     if (isScanning) {
-                        scanMessage = "جاري فحص بروتوكولات Kindlink / Miracast / DLNA على شبكة Wi-Fi المحلية..."
+                        scanMessage = "Scanning for Kindlink / Miracast / DLNA protocols on the local Wi-Fi network..."
                         kotlinx.coroutines.delay(1800)
                         val discoveredList = listOf(
                             CastDevice("smart_tv_morsat", "SMART_TV (Kindlink / MORSAT)", "Wireless Display / Miracast - 192.168.1.100"),
@@ -274,7 +274,7 @@ fun GoogleCastDialog(
                         )
                         devices = (devices + discoveredList).distinctBy { it.name }
                         isScanning = false
-                        scanMessage = "تم العثور على جهاز SMART_TV (MORSAT / Kindlink) متصل بالشبكة!"
+                        scanMessage = "Found a SMART_TV (MORSAT / Kindlink) device connected to the network!"
                     }
                 }
 
@@ -319,13 +319,13 @@ fun GoogleCastDialog(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "لم يتم الربط مع أي جهاز كاست قريب",
+                                text = "Not linked to any nearby cast device",
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "انقر على \"ربط جهاز جديد\" لإضافة شاشة أو استقبال كاست بواسطة عنوان IP أو اسم الشاشة.",
+                                text = "Tap \"Add New Device\" to add a screen or cast receiver by IP address or screen name.",
                                 color = Color.Gray,
                                 fontSize = 11.sp,
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -335,7 +335,7 @@ fun GoogleCastDialog(
                     }
                 } else {
                     Text(
-                        text = "الأجهزة المتاحة للاتصال (${devices.size}):",
+                        text = "Available Devices (${devices.size}):",
                         fontSize = 12.sp,
                         color = Color.LightGray,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -418,7 +418,7 @@ fun GoogleCastDialog(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
-                                                contentDescription = "حذف الجهاز",
+                                                contentDescription = "Delete device",
                                                 tint = Color.Gray,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -433,7 +433,7 @@ fun GoogleCastDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("إلغاء", color = Color.Gray)
+                Text("Cancel", color = Color.Gray)
             }
         }
     )
@@ -445,14 +445,14 @@ fun GoogleCastDialog(
             modifier = Modifier.fillMaxWidth(0.9f),
             containerColor = Color(0xFF222228),
             title = {
-                Text("ربط جهاز كاست جديد", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Link New Cast Device", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = newDeviceName,
                         onValueChange = { newDeviceName = it },
-                        label = { Text("اسم الجهاز (مثلاً: شاشة الصالة)") },
+                        label = { Text("Device name (e.g.: Living Room TV)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = NetflixRed,
@@ -463,7 +463,7 @@ fun GoogleCastDialog(
                     OutlinedTextField(
                         value = newDeviceIp,
                         onValueChange = { newDeviceIp = it },
-                        label = { Text("عنوان IP أو الموديل (اختياري)") },
+                        label = { Text("IP address or model (optional)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = NetflixRed,
@@ -475,7 +475,7 @@ fun GoogleCastDialog(
             confirmButton = {
                 Button(
                     onClick = {
-                        val name = newDeviceName.ifBlank { "شاشة ذكية جديدة" }
+                        val name = newDeviceName.ifBlank { "New Smart Display" }
                         val typeInfo = if (newDeviceIp.isNotBlank()) "IP: $newDeviceIp" else "Smart TV Cast"
                         val newDev = CastDevice(
                             id = "dev_${System.currentTimeMillis()}",
@@ -490,12 +490,12 @@ fun GoogleCastDialog(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = NetflixRed)
                 ) {
-                    Text("ربط واتصال", fontWeight = FontWeight.Bold)
+                    Text("Link & Connect", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDeviceDialog = false }) {
-                    Text("إلغاء", color = Color.Gray)
+                    Text("Cancel", color = Color.Gray)
                 }
             }
         )

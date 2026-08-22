@@ -134,7 +134,7 @@ fun AutoCyclingHeroBanner(
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
-                            text = "الأكثر تداولاً 🔥",
+                            text = "Trending 🔥",
                             color = Color.White,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -215,13 +215,13 @@ fun AutoCyclingHeroBanner(
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "شاهد الآن",
+                            contentDescription = "Watch Now",
                             tint = Color.Black,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "شاهد الآن",
+                            text = "Watch Now",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             color = Color.Black
@@ -237,7 +237,7 @@ fun AutoCyclingHeroBanner(
                     ) {
                         Icon(
                             imageVector = if (featuredMovie.isFavorite) Icons.Default.Check else Icons.Default.Add,
-                            contentDescription = "قائمتي",
+                            contentDescription = "My List",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
@@ -252,7 +252,7 @@ fun AutoCyclingHeroBanner(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "التفاصيل",
+                            contentDescription = "Details",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )

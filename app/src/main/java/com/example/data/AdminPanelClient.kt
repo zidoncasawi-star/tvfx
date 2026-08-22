@@ -41,7 +41,7 @@ object AdminPanelClient {
         if (adminUrl.isBlank() || adminUrl.startsWith("http://mock") || adminUrl.startsWith("mock")) {
             return@withContext SubscriptionCheckResult(
                 isActivated = false,
-                message = "لم يتم ضبط عنوان لوحة التحكم بعد."
+                message = "The admin panel address has not been configured yet."
             )
         }
 
@@ -60,7 +60,7 @@ object AdminPanelClient {
                     if (responseBody != null) {
                         val json = JSONObject(responseBody)
                         val isActivated = json.optBoolean("activated", false) || json.optString("status").lowercase() == "active"
-                        val msg = json.optString("message", if (isActivated) "الاشتراك نشط ومفعل" else "الاشتراك غير مفعل بعد")
+                        val msg = json.optString("message", if (isActivated) "Subscription is active" else "Subscription not yet activated")
                         val expiresAt = if (json.has("expiresAt")) json.optLong("expiresAt") else null
                         
                         val xHost = json.optString("xtreamHost", "").ifBlank { json.optString("xtream_host", "") }
@@ -80,14 +80,14 @@ object AdminPanelClient {
                 }
                 return@withContext SubscriptionCheckResult(
                     isActivated = false,
-                    message = "حدث خطأ أثناء التحقق من الاشتراك. الخادم استجاب بـ ${response.code}"
+                    message = "An error occurred while verifying the subscription. Server responded with ${response.code}"
                 )
             }
         } catch (e: Throwable) {
             e.printStackTrace()
             return@withContext SubscriptionCheckResult(
                 isActivated = false,
-                message = "فشل الاتصال بلوحة التحكم الخارجية: ${e.message ?: "خطأ غير معروف"}"
+                message = "Failed to connect to the admin panel: ${e.message ?: "Unknown error"}"
             )
         }
     }
@@ -105,7 +105,7 @@ object AdminPanelClient {
             if (identifier == "rodix_user" || identifier == "user@rodixtv.com") {
                 return@withContext JSONObject().apply {
                     put("success", true)
-                    put("fullName", "مستخدم روديكس")
+                    put("fullName", "Rodix User")
                     put("email", "user@rodixtv.com")
                     put("username", "rodix_user")
                     put("phoneNumber", "0500000000")
@@ -159,7 +159,7 @@ object AdminPanelClient {
         if (adminUrl.isBlank() || adminUrl.startsWith("http://mock") || adminUrl.startsWith("mock")) {
             return@withContext JSONObject().apply {
                 put("success", true)
-                put("message", "تم التسجيل بنجاح (تجريبي)")
+                put("message", "Registration successful (demo)")
             }
         }
 

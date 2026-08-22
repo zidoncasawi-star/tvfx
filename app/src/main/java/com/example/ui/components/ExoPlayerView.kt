@@ -60,9 +60,9 @@ private fun android.content.Context.findActivity(): Activity? {
 }
 
 enum class ResizeMode(val mode: Int, val labelAr: String) {
-    FIT(AspectRatioFrameLayout.RESIZE_MODE_FIT, "احتواء"),
-    FILL(AspectRatioFrameLayout.RESIZE_MODE_FILL, "تعبئة الشاشة"),
-    ZOOM(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, "تكبير")
+    FIT(AspectRatioFrameLayout.RESIZE_MODE_FIT, "Fit"),
+    FILL(AspectRatioFrameLayout.RESIZE_MODE_FILL, "Fill Screen"),
+    ZOOM(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, "Zoom")
 }
 
 data class AudioTrackOption(
@@ -296,7 +296,7 @@ fun ExoPlayerView(
                                     "$rawLabel ($languageName)"
                                 rawLabel != null -> rawLabel
                                 languageName != null -> languageName
-                                else -> "مسار صوت ${options.size + 1}"
+                                else -> "Audio Track ${options.size + 1}"
                             }
                             options.add(
                                 AudioTrackOption(
@@ -401,14 +401,14 @@ fun ExoPlayerView(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "تعذّر تشغيل هذا البث",
+                        text = "Failed to play this stream",
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "تأكد من اتصال الإنترنت أو جرّب قناة/فيلماً آخر لاحقاً.",
+                        text = "Check your internet connection or try another channel/movie later.",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp
                     )
@@ -425,7 +425,7 @@ fun ExoPlayerView(
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
-                                text = "إعادة المحاولة",
+                                text = "Retry",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
@@ -437,7 +437,7 @@ fun ExoPlayerView(
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
-                                text = "إغلاق",
+                                text = "Close",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
@@ -475,9 +475,9 @@ fun ExoPlayerView(
                         )
                         Text(
                             text = if (isAutoReconnecting) 
-                                "إعادة الاتصال الذكي بالبث... (محاولة $reconnectAttempt/$maxReconnectAttempts)" 
-                            else 
-                                "جاري تحميل البث وتثبيت الإشارة...",
+                                "Smart stream reconnecting... (attempt $reconnectAttempt/$maxReconnectAttempts)"
+                            else
+                                "Loading stream and locking signal...",
                             color = Color.White,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -521,7 +521,7 @@ fun ExoPlayerView(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "إغلاق المشغل",
+                                contentDescription = "Close Player",
                                 tint = Color.White
                             )
                         }
@@ -544,7 +544,7 @@ fun ExoPlayerView(
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
-                                            text = "بث مباشر HD",
+                                            text = "Live HD Stream",
                                             color = Color.White,
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Bold,
@@ -569,7 +569,7 @@ fun ExoPlayerView(
                         ) {
                             Icon(
                                 imageVector = if (connectedCastDevice != null) Icons.Default.CastConnected else Icons.Default.Cast,
-                                contentDescription = "بث الشاشة",
+                                contentDescription = "Screen Cast",
                                 tint = Color.White
                             )
                         }
@@ -587,7 +587,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Timer,
-                                    contentDescription = "مؤقت النوم",
+                                    contentDescription = "Sleep Timer",
                                     tint = Color.White
                                 )
                                 if (sleepTimerRemainingSeconds > 0) {
@@ -614,7 +614,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Schedule,
-                                    contentDescription = "دليل البرامج",
+                                    contentDescription = "Program Guide",
                                     tint = Color.White
                                 )
                             }
@@ -630,7 +630,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Audiotrack,
-                                    contentDescription = "مسار الصوت",
+                                    contentDescription = "Audio Track",
                                     tint = Color.White
                                 )
                             }
@@ -663,7 +663,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.SettingsRemote,
-                                    contentDescription = "ريموت البث",
+                                    contentDescription = "Stream Remote",
                                     tint = Color.White
                                 )
                             }
@@ -689,7 +689,7 @@ fun ExoPlayerView(
                         ) {
                             Icon(
                                 imageVector = if (isLandscapeMode) Icons.Default.ScreenRotation else Icons.Default.ScreenLockLandscape,
-                                contentDescription = "تدوير الشاشة",
+                                contentDescription = "Rotate Screen",
                                 tint = Color.White
                             )
                         }
@@ -709,7 +709,7 @@ fun ExoPlayerView(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AspectRatio,
-                                contentDescription = "أبعاد الشاشة",
+                                contentDescription = "Screen Aspect Ratio",
                                 tint = Color.White
                             )
                         }
@@ -724,7 +724,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Tv,
-                                    contentDescription = "قائمة القنوات",
+                                    contentDescription = "Channel List",
                                     tint = Color.White
                                 )
                             }
@@ -749,7 +749,7 @@ fun ExoPlayerView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Replay10,
-                            contentDescription = "تراجع 10 ثواني",
+                            contentDescription = "Rewind 10 seconds",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
@@ -769,7 +769,7 @@ fun ExoPlayerView(
                     ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "إيقاف" else "تشغيل",
+                            contentDescription = if (isPlaying) "Pause" else "Play",
                             tint = Color.White,
                             modifier = Modifier.size(38.dp)
                         )
@@ -786,7 +786,7 @@ fun ExoPlayerView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Forward10,
-                            contentDescription = "تقديم 10 ثواني",
+                            contentDescription = "Forward 10 seconds",
                             tint = Color.White,
                             modifier = Modifier.size(28.dp)
                         )
@@ -837,7 +837,7 @@ fun ExoPlayerView(
                     }
 
                     Text(
-                        text = "وضع الشاشة: ${resizeModeState.labelAr}",
+                        text = "Screen Mode: ${resizeModeState.labelAr}",
                         color = Color.LightGray,
                         fontSize = 11.sp,
                         modifier = Modifier.align(Alignment.End)
@@ -863,13 +863,13 @@ fun ExoPlayerView(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "قائمة القنوات المباشرة",
+                            text = "Live Channel List",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                         IconButton(onClick = { showChannelDrawer = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                         }
                     }
 
@@ -939,18 +939,18 @@ fun ExoPlayerView(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.Timer, contentDescription = null, tint = NetflixRed)
-                        Text("مؤقت إيقاف التشغيل (Sleep Timer)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Sleep Timer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("حدد المدة الزمنية لإيقاف البث تلقائياً:", fontSize = 13.sp, color = Color.LightGray)
+                        Text("Select a duration to automatically stop the stream:", fontSize = 13.sp, color = Color.LightGray)
 
                         val options = listOf(
-                            15 to "15 دقيقة",
-                            30 to "30 دقيقة",
-                            60 to "60 دقيقة (ساعة)",
-                            120 to "120 دقيقة (ساعتان)"
+                            15 to "15 minutes",
+                            30 to "30 minutes",
+                            60 to "60 minutes (1 hour)",
+                            120 to "120 minutes (2 hours)"
                         )
 
                         options.forEach { (minutes, label) ->
@@ -984,7 +984,7 @@ fun ExoPlayerView(
                                 colors = ButtonDefaults.buttonColors(containerColor = NetflixRed),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("إلغاء المؤقت النشط", color = Color.White)
+                                Text("Cancel Active Timer", color = Color.White)
                             }
                         }
                     }
@@ -992,7 +992,7 @@ fun ExoPlayerView(
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { showSleepTimerDialog = false }) {
-                        Text("إلغاء", color = Color.Gray)
+                        Text("Cancel", color = Color.Gray)
                     }
                 }
             )
@@ -1012,7 +1012,7 @@ fun ExoPlayerView(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.Speed, contentDescription = null, tint = NetflixRed)
-                        Text("سرعة التشغيل", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Playback Speed", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 },
                 text = {
@@ -1040,7 +1040,7 @@ fun ExoPlayerView(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = if (speed == 1.0f) "1.0x (العادية)" else "${speed}x",
+                                        text = if (speed == 1.0f) "1.0x (Normal)" else "${speed}x",
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -1055,7 +1055,7 @@ fun ExoPlayerView(
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { showSpeedDialog = false }) {
-                        Text("إلغاء", color = Color.Gray)
+                        Text("Cancel", color = Color.Gray)
                     }
                 }
             )
@@ -1075,7 +1075,7 @@ fun ExoPlayerView(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.Audiotrack, contentDescription = null, tint = NetflixRed)
-                        Text("مسار الصوت (Audio Track)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Audio Track", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 },
                 text = {
@@ -1108,7 +1108,7 @@ fun ExoPlayerView(
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { showAudioTrackDialog = false }) {
-                        Text("إلغاء", color = Color.Gray)
+                        Text("Cancel", color = Color.Gray)
                     }
                 }
             )
@@ -1134,12 +1134,12 @@ fun ExoPlayerView(
                         ) {
                             Icon(Icons.Default.CastConnected, contentDescription = null, tint = NetflixRed)
                             Column {
-                                Text("ريموت التحكم في البث", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text("Stream Remote Control", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 Text(connectedCastDevice!!, fontSize = 11.sp, color = Color.LightGray)
                             }
                         }
                         IconButton(onClick = { showCastRemoteControl = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.Gray)
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
                         }
                     }
                 },
@@ -1161,7 +1161,7 @@ fun ExoPlayerView(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "جاري العرض الآن على التلفاز:",
+                                    text = "Now showing on TV:",
                                     fontSize = 10.sp,
                                     color = Color.Gray
                                 )
@@ -1192,7 +1192,7 @@ fun ExoPlayerView(
                                     .clip(CircleShape)
                                     .background(Color(0xFF2C2C34))
                             ) {
-                                Icon(Icons.Default.Replay10, contentDescription = "تراجع 10 ثوان", tint = Color.White)
+                                Icon(Icons.Default.Replay10, contentDescription = "Rewind 10 seconds", tint = Color.White)
                             }
 
                             IconButton(
@@ -1210,7 +1210,7 @@ fun ExoPlayerView(
                             ) {
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = "تشغيل / إيقاف",
+                                    contentDescription = "Play / Pause",
                                     tint = Color.White,
                                     modifier = Modifier.size(32.dp)
                                 )
@@ -1227,7 +1227,7 @@ fun ExoPlayerView(
                                     .clip(CircleShape)
                                     .background(Color(0xFF2C2C34))
                             ) {
-                                Icon(Icons.Default.Forward10, contentDescription = "تقدم 10 ثوان", tint = Color.White)
+                                Icon(Icons.Default.Forward10, contentDescription = "Forward 10 seconds", tint = Color.White)
                             }
                         }
 
@@ -1244,7 +1244,7 @@ fun ExoPlayerView(
                                 IconButton(onClick = { isCastMuted = !isCastMuted }) {
                                     Icon(
                                         imageVector = if (isCastMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                                        contentDescription = "كتم الصوت",
+                                        contentDescription = "Mute",
                                         tint = if (isCastMuted) NetflixRed else Color.White
                                     )
                                 }
@@ -1284,14 +1284,14 @@ fun ExoPlayerView(
                         ) {
                             Icon(Icons.Default.CastConnected, contentDescription = null, tint = NetflixRed, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("قطع الاتصال بالجهاز", color = NetflixRed, fontSize = 12.sp)
+                            Text("Disconnect Device", color = NetflixRed, fontSize = 12.sp)
                         }
                     }
                 },
                 confirmButton = {},
                 dismissButton = {
                     TextButton(onClick = { showCastRemoteControl = false }) {
-                        Text("إغلاق الريموت", color = Color.Gray)
+                        Text("Close Remote", color = Color.Gray)
                     }
                 }
             )

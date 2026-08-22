@@ -193,7 +193,7 @@ fun MovieCard(
             ) {
                 Icon(
                     imageVector = if (movie.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "المفضلة",
+                    contentDescription = "Favorite",
                     tint = if (movie.isFavorite) NetflixRed else Color.White,
                     modifier = Modifier.size(16.dp)
                 )
@@ -263,7 +263,7 @@ fun SeriesCard(
                 modifier = Modifier.align(Alignment.TopStart)
             ) {
                 Text(
-                    text = "مسلسل",
+                    text = "Series",
                     color = Color.White,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
@@ -281,7 +281,7 @@ fun SeriesCard(
             ) {
                 Icon(
                     imageVector = if (series.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "المفضلة",
+                    contentDescription = "Favorite",
                     tint = if (series.isFavorite) NetflixRed else Color.White,
                     modifier = Modifier.size(16.dp)
                 )
@@ -377,7 +377,7 @@ fun ChannelCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "مباشر",
+                        text = "Live",
                         color = Color.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -394,7 +394,7 @@ fun ChannelCard(
             ) {
                 Icon(
                     imageVector = if (channel.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                    contentDescription = "المفضلة",
+                    contentDescription = "Favorite",
                     tint = if (channel.isFavorite) RatingGold else Color.White,
                     modifier = Modifier.size(16.dp)
                 )
@@ -476,7 +476,7 @@ fun HistoryCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "متابعة التشغيل",
+                    contentDescription = "Continue Playing",
                     tint = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )

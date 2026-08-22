@@ -57,7 +57,7 @@ fun ProfileManagementDialog(
                 ) {
                     Icon(Icons.Default.AccountCircle, contentDescription = null, tint = NetflixRed)
                     Text(
-                        text = if (isCreatingNew) "إضافة بروفايل جديد" else "إدارة بروفايلات المستخدمين",
+                        text = if (isCreatingNew) "Add New Profile" else "Manage User Profiles",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -65,7 +65,7 @@ fun ProfileManagementDialog(
                 }
 
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.Gray)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
                 }
             }
         },
@@ -78,7 +78,7 @@ fun ProfileManagementDialog(
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text("اسم البروفايل") },
+                        label = { Text("Profile Name") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = NetflixRed,
@@ -91,7 +91,7 @@ fun ProfileManagementDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Text("اختر لون الأيقونة:", fontSize = 12.sp, color = Color.LightGray)
+                    Text("Choose icon color:", fontSize = 12.sp, color = Color.LightGray)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(colorOptions) { colorHex ->
                             val parsedColor = try {
@@ -120,8 +120,8 @@ fun ProfileManagementDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("وضع الأطفال", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            Text("تقييد المحتوى المناسب للأعمار الصغيرة فقط", fontSize = 10.sp, color = Color.Gray)
+                            Text("Kids Mode", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Restrict content to age-appropriate for young children only", fontSize = 10.sp, color = Color.Gray)
                         }
                         Switch(
                             checked = newIsKids,
@@ -133,7 +133,7 @@ fun ProfileManagementDialog(
                     OutlinedTextField(
                         value = newPinCode,
                         onValueChange = { if (it.length <= 4) newPinCode = it },
-                        label = { Text("رمز PIN لحماية البروفايل (اختياري)") },
+                        label = { Text("PIN code to protect profile (optional)") },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = NetflixRed,
@@ -148,7 +148,7 @@ fun ProfileManagementDialog(
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("اختر البروفايل النشط للتبديل إليه:", fontSize = 12.sp, color = Color.LightGray)
+                    Text("Choose the active profile to switch to:", fontSize = 12.sp, color = Color.LightGray)
 
                     profiles.forEach { profile ->
                         val isCurrent = activeProfile?.id == profile.id
@@ -214,7 +214,7 @@ fun ProfileManagementDialog(
                                                     shape = RoundedCornerShape(4.dp)
                                                 ) {
                                                     Text(
-                                                        text = "أطفال",
+                                                        text = "Kids",
                                                         fontSize = 9.sp,
                                                         color = Color.White,
                                                         fontWeight = FontWeight.Bold,
@@ -226,7 +226,7 @@ fun ProfileManagementDialog(
 
                                         if (profile.pinCode.isNotEmpty()) {
                                             Text(
-                                                text = "محمي برمز PIN",
+                                                text = "PIN protected",
                                                 fontSize = 10.sp,
                                                 color = Color.Gray
                                             )
@@ -248,7 +248,7 @@ fun ProfileManagementDialog(
                                         IconButton(onClick = { onDeleteProfile(profile) }) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
-                                                contentDescription = "حذف البروفايل",
+                                                contentDescription = "Delete profile",
                                                 tint = Color.Gray,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -266,7 +266,7 @@ fun ProfileManagementDialog(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("إنشاء بروفايل جديد", color = Color.White)
+                        Text("Create New Profile", color = Color.White)
                     }
                 }
             }
@@ -283,7 +283,7 @@ fun ProfileManagementDialog(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = NetflixRed)
                 ) {
-                    Text("حفظ البروفايل", color = Color.White)
+                    Text("Save Profile", color = Color.White)
                 }
             }
         },
@@ -297,7 +297,7 @@ fun ProfileManagementDialog(
                     }
                 }
             ) {
-                Text(if (isCreatingNew) "تراجع" else "إلغاء", color = Color.Gray)
+                Text(if (isCreatingNew) "Back" else "Cancel", color = Color.Gray)
             }
         }
     )

@@ -22,10 +22,10 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.NetflixRed
 
 enum class SortOption(val label: String) {
-    DEFAULT("الافتراضي"),
-    RATING("الأعلى تقييماً"),
-    YEAR("الأحدث"),
-    NAME("الاسم أ-ي")
+    DEFAULT("Default"),
+    RATING("Top Rated"),
+    YEAR("Newest"),
+    NAME("Name A-Z")
 }
 
 @Composable
@@ -71,7 +71,7 @@ fun DropdownFilterBar(
     var categoryMenuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
-    val hasActiveFilters = selectedCategory != "الكل" || sortOption != SortOption.DEFAULT
+    val hasActiveFilters = selectedCategory != "All" || sortOption != SortOption.DEFAULT
 
     Row(
         modifier = modifier
@@ -83,7 +83,7 @@ fun DropdownFilterBar(
         Box {
             DropdownPill(
                 label = categoryNames?.get(selectedCategory) ?: selectedCategory,
-                isActive = selectedCategory != "الكل",
+                isActive = selectedCategory != "All",
                 onClick = { categoryMenuExpanded = true }
             )
             DropdownMenu(
@@ -138,12 +138,12 @@ fun DropdownFilterBar(
 
         if (hasActiveFilters) {
             Text(
-                text = "إعادة ضبط",
+                text = "Reset",
                 color = Color.White.copy(alpha = 0.6f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.clickable {
-                    onCategorySelect("الكل")
+                    onCategorySelect("All")
                     onSortSelect(SortOption.DEFAULT)
                 }
             )

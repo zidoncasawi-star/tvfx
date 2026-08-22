@@ -7,7 +7,7 @@ object DemoDataSupplier {
     // لا يوجد حساب Xtream افتراضي مكتوب في الكود — كل اشتراك يُجلب حصرياً من لوحة التحكم
     val DEMO_PLAYLIST = PlaylistEntity(
         id = 1L,
-        name = "بانتظار اشتراك من الإدارة",
+        name = "Waiting for a subscription from Admin",
         type = PlaylistType.XTREAM,
         serverUrl = "",
         username = "",
@@ -39,10 +39,10 @@ object DemoDataSupplier {
                         seriesId = seriesId,
                         seasonNum = season,
                         episodeNum = ep,
-                        title = "الموسم $season - الحلقة $ep",
+                        title = "Season $season - Episode $ep",
                         streamUrl = sampleUrls[urlIndex],
-                        duration = "${(40..55).random()} دقيقة",
-                        plot = "أحداث مثيرة ومشوقة في الحلقة $ep من الموسم $season."
+                        duration = "${(40..55).random()} min",
+                        plot = "Exciting and thrilling events in episode $ep of season $season."
                     )
                 )
             }

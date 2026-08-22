@@ -57,11 +57,11 @@ fun UserAccountSection(
         AlertDialog(
             onDismissRequest = { showLinkDesktopDialog = false },
             containerColor = DarkCardBg,
-            title = { Text("ربط تطبيق سطح المكتب", color = Color.White, fontWeight = FontWeight.Bold) },
+            title = { Text("Link Desktop App", color = Color.White, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     Text(
-                        text = "افتح FLIXTV على الحاسوب → اضغط \"Sign in with Phone\" → أدخل الكود الظاهر هناك:",
+                        text = "Open FLIXTV on your computer → click \"Sign in with Phone\" → enter the code shown there:",
                         color = Color.LightGray,
                         fontSize = 13.sp,
                         lineHeight = 18.sp
@@ -70,7 +70,7 @@ fun UserAccountSection(
                     OutlinedTextField(
                         value = linkDesktopCode,
                         onValueChange = { linkDesktopCode = it.filter { c -> c.isDigit() }.take(6) },
-                        label = { Text("الكود المكوّن من 6 أرقام") },
+                        label = { Text("6-digit code") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
@@ -95,10 +95,10 @@ fun UserAccountSection(
                             linkDesktopCode = ""
                         }
                     }
-                ) { Text("ربط", color = NetflixRed, fontWeight = FontWeight.Bold) }
+                ) { Text("Link", color = NetflixRed, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showLinkDesktopDialog = false }) { Text("إلغاء", color = Color.Gray) }
+                TextButton(onClick = { showLinkDesktopDialog = false }) { Text("Cancel", color = Color.Gray) }
             }
         )
     }
@@ -123,28 +123,28 @@ fun UserAccountSection(
     var showCountryPicker by remember { mutableStateOf(false) }
 
     val countryCodes = listOf(
-        "+966" to "السعودية 🇸🇦",
-        "+971" to "الإمارات 🇦🇪",
-        "+965" to "الكويت 🇰🇼",
-        "+974" to "قطر 🇶🇦",
-        "+973" to "البحرين 🇧🇭",
-        "+968" to "عمان 🇴🇲",
-        "+212" to "المغرب 🇲🇦",
-        "+20" to "مصر 🇪🇬",
-        "+962" to "الأردن 🇯🇴",
-        "+961" to "لبنان 🇱🇧",
-        "+213" to "الجزائر 🇩🇿",
-        "+216" to "تونس 🇹🇳",
-        "+218" to "ليبيا 🇱🇾",
-        "+249" to "السودان 🇸🇩",
-        "+964" to "العراق 🇮🇶",
-        "+963" to "سوريا 🇸🇾",
-        "+970" to "فلسطين 🇵🇸",
-        "+967" to "اليمن 🇾🇪",
-        "+222" to "موريتانيا 🇲🇷",
-        "+253" to "جيبوتي 🇩🇯",
-        "+252" to "الصومال 🇸🇴",
-        "+269" to "جزر القمر 🇰🇲"
+        "+966" to "Saudi Arabia 🇸🇦",
+        "+971" to "United Arab Emirates 🇦🇪",
+        "+965" to "Kuwait 🇰🇼",
+        "+974" to "Qatar 🇶🇦",
+        "+973" to "Bahrain 🇧🇭",
+        "+968" to "Oman 🇴🇲",
+        "+212" to "Morocco 🇲🇦",
+        "+20" to "Egypt 🇪🇬",
+        "+962" to "Jordan 🇯🇴",
+        "+961" to "Lebanon 🇱🇧",
+        "+213" to "Algeria 🇩🇿",
+        "+216" to "Tunisia 🇹🇳",
+        "+218" to "Libya 🇱🇾",
+        "+249" to "Sudan 🇸🇩",
+        "+964" to "Iraq 🇮🇶",
+        "+963" to "Syria 🇸🇾",
+        "+970" to "Palestine 🇵🇸",
+        "+967" to "Yemen 🇾🇪",
+        "+222" to "Mauritania 🇲🇷",
+        "+253" to "Djibouti 🇩🇯",
+        "+252" to "Somalia 🇸🇴",
+        "+269" to "Comoros 🇰🇲"
     )
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -216,7 +216,7 @@ fun UserAccountSection(
                                     Icon(Icons.Default.Verified, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "حساب نشط - عضوية VIP ممتازة",
+                                        text = "Active Account - Premium VIP Membership",
                                         color = Color.White,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
@@ -236,7 +236,7 @@ fun UserAccountSection(
                                     Icon(Icons.Default.Error, contentDescription = null, tint = NetflixRed, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "حساب غير نشط - بانتظار تفعيل الاشتراك",
+                                        text = "Inactive Account - Waiting for Subscription Activation",
                                         color = Color.White,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
@@ -267,7 +267,7 @@ fun UserAccountSection(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "تفعيل الاشتراك والخدمات الخارجية",
+                                    text = "Activate Subscription & External Services",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -277,7 +277,7 @@ fun UserAccountSection(
                             Spacer(modifier = Modifier.height(10.dp))
                             
                             Text(
-                                text = "مرحباً بك! حسابك مسجل بنجاح ولكنه بانتظار التفعيل من قبل لوحة الإدارة بعد إتمام عملية الاشتراك والدفع.",
+                                text = "Welcome! Your account has been registered successfully but is awaiting activation from the admin panel after the subscription and payment process is complete.",
                                 fontSize = 13.sp,
                                 color = Color.LightGray,
                                 lineHeight = 18.sp
@@ -298,7 +298,7 @@ fun UserAccountSection(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column {
-                                        Text("كود التفعيل الخاص بك", fontSize = 11.sp, color = Color.Gray)
+                                        Text("Your Activation Code", fontSize = 11.sp, color = Color.Gray)
                                         Text(
                                             text = userAccount.activationCode,
                                             fontSize = 20.sp,
@@ -317,7 +317,7 @@ fun UserAccountSection(
                                     ) {
                                         Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("نسخ الكود", fontSize = 12.sp)
+                                        Text("Copy Code", fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -346,7 +346,7 @@ fun UserAccountSection(
                                 ) {
                                     AsyncImage(
                                         model = qrImageUrl,
-                                        contentDescription = "رمز QR للتفعيل",
+                                        contentDescription = "Activation QR code",
                                         modifier = Modifier
                                             .size(160.dp)
                                             .padding(8.dp)
@@ -370,7 +370,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("فتح صفحة التفعيل", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Open Activation Page", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             }
 
                             Spacer(modifier = Modifier.height(10.dp))
@@ -386,7 +386,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("تحقق من التفعيل 🔄", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Check Activation 🔄", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -402,20 +402,20 @@ fun UserAccountSection(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "معلومات الحساب والشخصية",
+                            text = "Account & Personal Information",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
 
-                        AccountDetailRow(icon = Icons.Default.Email, label = "البريد الإلكتروني", value = userAccount.email)
+                        AccountDetailRow(icon = Icons.Default.Email, label = "Email", value = userAccount.email)
                         Divider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(vertical = 10.dp))
-                        AccountDetailRow(icon = Icons.Default.Person, label = "اسم المستخدم", value = userAccount.username)
+                        AccountDetailRow(icon = Icons.Default.Person, label = "Username", value = userAccount.username)
 
                         if (userAccount.phoneNumber.isNotBlank()) {
                             Divider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(vertical = 10.dp))
-                            AccountDetailRow(icon = Icons.Default.Phone, label = "رقم الهاتف", value = userAccount.phoneNumber)
+                            AccountDetailRow(icon = Icons.Default.Phone, label = "Phone Number", value = userAccount.phoneNumber)
                         }
                     }
                 }
@@ -440,7 +440,7 @@ fun UserAccountSection(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "اشتراكك المخصص جاهز للاستيراد ⚡",
+                                    text = "Your custom subscription is ready to import ⚡",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -450,7 +450,7 @@ fun UserAccountSection(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = "لقد قام مدير النظام بتعيين اشتراك مخصص ومباشر لحسابك. اضغط على استيراد لتفعيل البث الفوري للمحتوى.",
+                                text = "The admin has assigned a custom, direct subscription to your account. Tap Import to activate instant content streaming.",
                                 fontSize = 13.sp,
                                 color = Color.LightGray,
                                 lineHeight = 18.sp
@@ -468,7 +468,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.CloudDownload, contentDescription = null, tint = Color.White)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("استيراد وتفعيل البث الخاص بي 📥", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("Import & Activate My Stream 📥", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
                         }
                     }
@@ -495,7 +495,7 @@ fun UserAccountSection(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "بانتظار تعيين اشتراك من الإدارة",
+                                    text = "Waiting for a Subscription from Admin",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -505,7 +505,7 @@ fun UserAccountSection(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = "لم يتم تعيين اشتراك Xtream لحسابك بعد من لوحة التحكم. اضغط \"التحقق من التفعيل\" بعد أن يُفعِّل الأدمن حسابك وسيتم الاستيراد تلقائياً.",
+                                text = "No Xtream subscription has been assigned to your account yet from the admin panel. Tap \"Check Activation\" after the admin activates your account and it will be imported automatically.",
                                 fontSize = 13.sp,
                                 color = Color.LightGray,
                                 lineHeight = 18.sp
@@ -525,7 +525,7 @@ fun UserAccountSection(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "إعدادات الحساب والأمان",
+                            text = "Account & Security Settings",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -541,7 +541,7 @@ fun UserAccountSection(
                         ) {
                             Icon(Icons.Default.Laptop, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("ربط تطبيق سطح المكتب 🖥️", fontWeight = FontWeight.Bold)
+                            Text("Link Desktop App 🖥️", fontWeight = FontWeight.Bold)
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -555,7 +555,7 @@ fun UserAccountSection(
                         ) {
                             Icon(Icons.Default.Logout, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("تسجيل الخروج من الحساب", fontWeight = FontWeight.Bold)
+                            Text("Log Out of Account", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -582,7 +582,7 @@ fun UserAccountSection(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "بوابة الحساب الشخصي وتجربة البث الرقمية",
+                    text = "Personal account portal and digital streaming experience",
                     fontSize = 12.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
@@ -610,7 +610,7 @@ fun UserAccountSection(
                             authModeTab = 0
                             localFormError = null
                         },
-                        text = { Text("تسجيل الدخول", fontWeight = FontWeight.Bold, fontSize = 14.sp) },
+                        text = { Text("Login", fontWeight = FontWeight.Bold, fontSize = 14.sp) },
                         icon = { Icon(Icons.Default.Login, contentDescription = null, modifier = Modifier.size(18.dp)) }
                     )
                     Tab(
@@ -619,7 +619,7 @@ fun UserAccountSection(
                             authModeTab = 1
                             localFormError = null
                         },
-                        text = { Text("إنشاء حساب جديد", fontWeight = FontWeight.Bold, fontSize = 14.sp) },
+                        text = { Text("Create New Account", fontWeight = FontWeight.Bold, fontSize = 14.sp) },
                         icon = { Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp)) }
                     )
                 }
@@ -658,7 +658,7 @@ fun UserAccountSection(
                     ) {
                         Column(modifier = Modifier.padding(20.dp)) {
                             Text(
-                                text = "تسجيل الدخول إلى حسابك",
+                                text = "Sign In to Your Account",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
@@ -668,7 +668,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = loginIdentifier,
                                 onValueChange = { loginIdentifier = it },
-                                label = { Text("البريد الإلكتروني أو اسم المستخدم") },
+                                label = { Text("Email or Username") },
                                 singleLine = true,
                                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = NetflixRed) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -684,7 +684,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = loginPassword,
                                 onValueChange = { loginPassword = it },
-                                label = { Text("كلمة المرور") },
+                                label = { Text("Password") },
                                 singleLine = true,
                                 visualTransformation = if (showLoginPassword) VisualTransformation.None else PasswordVisualTransformation(),
                                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = NetflixRed) },
@@ -710,7 +710,7 @@ fun UserAccountSection(
                             Button(
                                 onClick = {
                                     if (loginIdentifier.isBlank() || loginPassword.isBlank()) {
-                                        localFormError = "يرجى ملء كافة الحقول المطلوبة"
+                                        localFormError = "Please fill in all required fields"
                                     } else {
                                         localFormError = null
                                         onLogin(loginIdentifier, loginPassword, "https://app.flixplayer.pro")
@@ -724,7 +724,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.Login, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("تسجيل الدخول", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text("Login", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
@@ -740,7 +740,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.LightGray)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("دخول سريع بحساب تجريبي تلقائي", fontSize = 12.sp, color = Color.LightGray)
+                                Text("Quick login with an automatic demo account", fontSize = 12.sp, color = Color.LightGray)
                             }
                         }
                     }
@@ -756,7 +756,7 @@ fun UserAccountSection(
                     ) {
                         Column(modifier = Modifier.padding(20.dp)) {
                             Text(
-                                text = "إنشاء حساب جديد في RODIX TV",
+                                text = "Create a New Account in RODIX TV",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
@@ -766,7 +766,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = regUsername,
                                 onValueChange = { regUsername = it },
-                                label = { Text("اسم المستخدم (Username)") },
+                                label = { Text("Username") },
                                 singleLine = true,
                                 leadingIcon = { Icon(Icons.Default.AlternateEmail, contentDescription = null, tint = NetflixRed) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -782,7 +782,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = regEmail,
                                 onValueChange = { regEmail = it },
-                                label = { Text("البريد الإلكتروني") },
+                                label = { Text("Email") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = NetflixRed) },
@@ -799,7 +799,7 @@ fun UserAccountSection(
                             // Phone with Country Code
                             Column {
                                 Text(
-                                    text = "رقم الواتساب (إجباري لخدمة العملاء)",
+                                    text = "WhatsApp Number (required for customer service)",
                                     fontSize = 12.sp,
                                     color = Color.LightGray,
                                     modifier = Modifier.padding(bottom = 4.dp, start = 4.dp)
@@ -853,7 +853,7 @@ fun UserAccountSection(
                                     OutlinedTextField(
                                         value = regPhone,
                                         onValueChange = { regPhone = it },
-                                        placeholder = { Text("رقم الهاتف") },
+                                        placeholder = { Text("Phone Number") },
                                         singleLine = true,
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                                         modifier = Modifier.weight(0.65f),
@@ -870,7 +870,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = regPassword,
                                 onValueChange = { regPassword = it },
-                                label = { Text("كلمة المرور") },
+                                label = { Text("Password") },
                                 singleLine = true,
                                 visualTransformation = if (showRegPassword) VisualTransformation.None else PasswordVisualTransformation(),
                                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = NetflixRed) },
@@ -896,7 +896,7 @@ fun UserAccountSection(
                             OutlinedTextField(
                                 value = regConfirmPassword,
                                 onValueChange = { regConfirmPassword = it },
-                                label = { Text("تأكيد كلمة المرور") },
+                                label = { Text("Confirm Password") },
                                 singleLine = true,
                                 visualTransformation = if (showRegPassword) VisualTransformation.None else PasswordVisualTransformation(),
                                 leadingIcon = { Icon(Icons.Default.LockReset, contentDescription = null, tint = NetflixRed) },
@@ -913,9 +913,9 @@ fun UserAccountSection(
                             Button(
                                 onClick = {
                                     if (regEmail.isBlank() || regUsername.isBlank() || regPhone.isBlank() || regPassword.isBlank()) {
-                                        localFormError = "يرجى إكمال كافة البيانات الأساسية"
+                                        localFormError = "Please complete all required fields"
                                     } else if (regPassword != regConfirmPassword) {
-                                        localFormError = "كلمتا المرور غير متطابقتين"
+                                        localFormError = "Passwords do not match"
                                     } else {
                                         localFormError = null
                                         val fullPhone = regPhoneCode + regPhone.trim().removePrefix("0")
@@ -930,7 +930,7 @@ fun UserAccountSection(
                             ) {
                                 Icon(Icons.Default.PersonAdd, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("إنشاء حسابي الآن", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                Text("Create My Account Now", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }
                         }
                     }

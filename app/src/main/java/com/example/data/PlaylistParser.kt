@@ -57,9 +57,9 @@ object PlaylistParser {
     ): ParsedItem {
         // Extract attributes
         val logo = extractAttribute(extInf, "tvg-logo")
-        var group = extractAttribute(extInf, "group-title").ifEmpty { "عام" }
+        var group = extractAttribute(extInf, "group-title").ifEmpty { "General" }
         var name = extInf.substringAfterLast(",").trim()
-        if (name.isEmpty()) name = "قناة $num"
+        if (name.isEmpty()) name = "Channel $num"
 
         val lowerUrl = url.lowercase()
         val lowerGroup = group.lowercase()

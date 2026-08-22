@@ -90,7 +90,7 @@ fun LiveTvScreen(
     }
 
     val categories = remember(channels, xtreamCategories) {
-        val list = mutableListOf("الكل")
+        val list = mutableListOf("All")
         if (xtreamCategories.isNotEmpty()) {
             list.addAll(xtreamCategories.map { it.id })
         } else {
@@ -101,14 +101,14 @@ fun LiveTvScreen(
 
     val categoryNames = remember(channels, xtreamCategories) {
         val map = mutableMapOf<String, String>()
-        map["الكل"] = "الكل"
+        map["All"] = "All"
         xtreamCategories.forEach { map[it.id] = it.name }
         channels.forEach { if (!map.containsKey(it.category)) map[it.category] = it.category }
         map
     }
 
     LaunchedEffect(selectedCategory) {
-        if (selectedCategory != "الكل" && xtreamCategories.any { it.id == selectedCategory }) {
+        if (selectedCategory != "All" && xtreamCategories.any { it.id == selectedCategory }) {
             val hasChannels = channels.any { it.category == selectedCategory }
             if (!hasChannels) {
                 onLoadCategoryStreams(selectedCategory)
@@ -118,7 +118,7 @@ fun LiveTvScreen(
 
     val filteredChannels = remember(channels, selectedCategory, searchChannelQuery) {
         channels.filter {
-            (selectedCategory == "الكل" || it.category == selectedCategory) &&
+            (selectedCategory == "All" || it.category == selectedCategory) &&
                     (searchChannelQuery.isEmpty() || it.name.contains(searchChannelQuery, ignoreCase = true))
         }.sortedWith(
             compareByDescending<ChannelEntity> { it.isFavorite }
@@ -164,13 +164,13 @@ fun LiveTvScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "إغلاق",
+                            contentDescription = "Close",
                             tint = Color.White
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "البث المباشر",
+                        text = "Live TV",
                         color = Color.White,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
@@ -184,12 +184,12 @@ fun LiveTvScreen(
                         .fillMaxWidth()
                         .padding(12.dp)
                         .height(48.dp),
-                    placeholder = { Text("بحث الأقسام...", color = Color.Gray, fontSize = 12.sp) },
+                    placeholder = { Text("Search categories...", color = Color.Gray, fontSize = 12.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp)) },
                     trailingIcon = {
                         if (searchCategoryQuery.isNotEmpty()) {
                             IconButton(onClick = { searchCategoryQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray, modifier = Modifier.size(18.dp))
                             }
                         }
                     },
@@ -250,12 +250,12 @@ fun LiveTvScreen(
                         .fillMaxWidth()
                         .padding(12.dp)
                         .height(48.dp),
-                    placeholder = { Text("بحث القنوات...", color = Color.Gray, fontSize = 12.sp) },
+                    placeholder = { Text("Search channels...", color = Color.Gray, fontSize = 12.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(18.dp)) },
                     trailingIcon = {
                         if (searchChannelQuery.isNotEmpty()) {
                             IconButton(onClick = { searchChannelQuery = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray, modifier = Modifier.size(18.dp))
                             }
                         }
                     },
@@ -328,7 +328,7 @@ fun LiveTvScreen(
                             ) {
                                 Icon(
                                     imageVector = if (channel.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                    contentDescription = "تفضيل",
+                                    contentDescription = "Favorite",
                                     tint = if (channel.isFavorite) NetflixRed else Color.Gray,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -413,7 +413,7 @@ fun LiveTvScreen(
 
                         // القائمة الكاملة لدليل البرامج القادمة (وليس فقط "الآن/التالي") — مطابق
                         // لشريط EPG الأفقي في تطبيق سطح المكتب، بطاقة لكل برنامج مع شريط تقدّم للبرنامج الحالي
-                        Text(text = "دليل البرامج", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Program Guide", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(10.dp))
                         if (currentEpg.isEmpty()) {
                             Text(text = "NO EPG FOUND", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -443,13 +443,13 @@ fun LiveTvScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "إغلاق",
+                        contentDescription = "Close",
                         tint = Color.White
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "القنوات المباشرة",
+                    text = "Live TV",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -463,12 +463,12 @@ fun LiveTvScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .height(48.dp),
-                placeholder = { Text("بحث في القنوات...", color = Color.Gray) },
+                placeholder = { Text("Search channels...", color = Color.Gray) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                 trailingIcon = {
                     if (searchChannelQuery.isNotEmpty()) {
                         IconButton(onClick = { searchChannelQuery = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray)
+                            Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray)
                         }
                     }
                 },
@@ -541,7 +541,7 @@ private fun EpgProgramCard(program: com.example.data.ShortEpgEntry) {
                         .background(NetflixRed, RoundedCornerShape(3.dp))
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "الآن", color = NetflixRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Now", color = NetflixRed, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
         if (program.isNowPlaying) {

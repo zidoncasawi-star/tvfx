@@ -49,7 +49,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefs = application.getSharedPreferences("flix_tv_settings", Context.MODE_PRIVATE)
 
-    private val _appLanguage = MutableStateFlow(prefs.getString("key_app_lang", "ar") ?: "ar")
+    private val _appLanguage = MutableStateFlow(prefs.getString("key_app_lang", "en") ?: "en")
     val appLanguage: StateFlow<String> = _appLanguage.asStateFlow()
 
     private val _videoPlayerType = MutableStateFlow(prefs.getString("key_video_player", "ExoPlayer") ?: "ExoPlayer")
@@ -160,32 +160,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _isSyncing.value = true
             _importProgress.value = 0
-            _userMessage.value = if (_appLanguage.value == "ar") {
-                "جاري مسح الذاكرة المؤقتة وإعادة تحميل البيانات..."
-            } else if (_appLanguage.value == "fr") {
-                "Vidage du cache et rechargement des données..."
-            } else {
-                "Clearing cache and reloading data..."
-            }
+            _userMessage.value = "Clearing cache and reloading data..."
             try {
                 repository.clearPlaylistCache(active.id)
                 repository.syncPlaylistContent(active, onProgress = { _importProgress.value = it }, forceRefresh = true)
-                _userMessage.value = if (_appLanguage.value == "ar") {
-                    "تم مسح الذاكرة المؤقتة وتحديث محتوى الاشتراك بنجاح! 🎉"
-                } else if (_appLanguage.value == "fr") {
-                    "Cache vidé et abonnement mis à jour avec succès ! 🎉"
-                } else {
-                    "Cache cleared and subscription updated successfully! 🎉"
-                }
+                _userMessage.value = "Cache cleared and subscription updated successfully! 🎉"
             } catch (e: Exception) {
                 e.printStackTrace()
-                _userMessage.value = if (_appLanguage.value == "ar") {
-                    "فشل تحديث البيانات: تأكد من الاتصال بالإنترنت."
-                } else if (_appLanguage.value == "fr") {
-                    "Échec de mise à jour : vérifiez votre connexion internet."
-                } else {
-                    "Failed to reload data: check network connection."
-                }
+                _userMessage.value = "Failed to reload data: check network connection."
             } finally {
                 _isSyncing.value = false
                 _importProgress.value = 0
@@ -198,13 +180,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val active = activePlaylist.value ?: return
         viewModelScope.launch {
             repository.clearFavoritesAndHistory(active.id)
-            _userMessage.value = if (_appLanguage.value == "ar") {
-                "تم مسح المفضلة وسجل المشاهدة."
-            } else if (_appLanguage.value == "fr") {
-                "Favoris et historique effacés."
-            } else {
-                "Favorites and watch history cleared."
-            }
+            _userMessage.value = "Favorites and watch history cleared."
         }
     }
 
@@ -607,7 +583,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedTab = MutableStateFlow(MainTab.HOME)
     val selectedTab: StateFlow<MainTab> = _selectedTab.asStateFlow()
 
-    private val _selectedCategory = MutableStateFlow("الكل")
+    private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
@@ -804,7 +780,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setTab(tab: MainTab) {
         _selectedTab.value = tab
-        _selectedCategory.value = "الكل"
+        _selectedCategory.value = "All"
     }
 
     fun setCategory(category: String) {
@@ -995,25 +971,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _isSyncing.value = true
             _importProgress.value = 0
-            _userMessage.value = if (_appLanguage.value == "ar") {
-                "جاري تحديث محتوى الاشتراك..."
-            } else {
-                "Updating subscription content..."
-            }
+            _userMessage.value = "Updating subscription content..."
             try {
                 repository.syncPlaylistContent(active, onProgress = { _importProgress.value = it }, forceRefresh = true)
-                _userMessage.value = if (_appLanguage.value == "ar") {
-                    "تم تحديث محتوى الاشتراك بنجاح! 🎉"
-                } else {
-                    "Subscription content updated successfully! 🎉"
-                }
+                _userMessage.value = "Subscription content updated successfully! 🎉"
             } catch (e: Exception) {
                 e.printStackTrace()
-                _userMessage.value = if (_appLanguage.value == "ar") {
-                    "فشل التحديث: تأكد من الاتصال بالشبكة وصحة الاشتراك."
-                } else {
-                    "Update failed: check network connection and subscription status."
-                }
+                _userMessage.value = "Update failed: check network connection and subscription status."
             } finally {
                 _isSyncing.value = false
                 _importProgress.value = 0

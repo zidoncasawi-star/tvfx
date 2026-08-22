@@ -52,7 +52,7 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDes
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "الحساب نشط على جهاز آخر",
+                text = "Account Active on Another Device",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 19.sp,
@@ -62,7 +62,7 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDes
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "حسابك مفعَّل حالياً على تطبيق سطح المكتب (Windows). سجّل الخروج من هناك لاستخدام التطبيق على هاتفك من جديد.",
+                text = "Your account is currently active on the desktop app (Windows). Log out from there to use the app on your phone again.",
                 color = Color.LightGray,
                 fontSize = 13.sp,
                 lineHeight = 20.sp,
@@ -84,7 +84,7 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDes
             ) {
                 Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(if (checking) "جارِ التحقق..." else "إعادة المحاولة", fontWeight = FontWeight.Bold)
+                Text(if (checking) "Checking..." else "Retry", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -97,7 +97,7 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDes
             ) {
                 Icon(Icons.Default.PhonelinkErase, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("تسجيل الخروج من الحاسوب عن بُعد", fontWeight = FontWeight.Bold)
+                Text("Remotely Log Out Computer", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -111,7 +111,7 @@ fun DeviceLockScreen(onRetry: () -> Unit, onLogout: () -> Unit, onForceLogoutDes
             ) {
                 Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("تسجيل الخروج من هذا الهاتف فقط", fontWeight = FontWeight.Bold)
+                Text("Log Out of This Phone Only", fontWeight = FontWeight.Bold)
             }
         }
     }

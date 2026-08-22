@@ -115,46 +115,14 @@ fun SettingsDialog(
                         .verticalScroll(scrollState),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // Language Selection Section
-                    SettingsSection(title = t("app_language"), icon = Icons.Default.Language, accentColorHex = currentAccentColorHex) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            val languages = listOf("ar" to "العربية", "en" to "English", "fr" to "Français")
-                            languages.forEach { (code, name) ->
-                                val isSelected = currentLanguage == code
-                                val borderCol = if (isSelected) Color(android.graphics.Color.parseColor(currentAccentColorHex)) else Color.White.copy(alpha = 0.08f)
-                                val bgCol = if (isSelected) Color(android.graphics.Color.parseColor(currentAccentColorHex)).copy(alpha = 0.15f) else Color.Transparent
-
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(bgCol)
-                                        .clickable { onLanguageChange(code) }
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = name,
-                                        color = if (isSelected) Color(android.graphics.Color.parseColor(currentAccentColorHex)) else Color.LightGray,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        fontSize = 13.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
-
                     // Theme Color Settings
                     SettingsSection(title = t("theme") + " (" + t("accent_color") + ")", icon = Icons.Default.Palette, accentColorHex = currentAccentColorHex) {
                         val colors = listOf(
-                            "#E50914" to "أحمر",      // Netflix Red
-                            "#FFC107" to "ذهبي",     // Amber Gold
-                            "#00E5FF" to "أزرق نيون",  // Neon Blue
-                            "#00E676" to "أخضر",     // Emerald Green
-                            "#9C27B0" to "بنفسجي"     // Purple
+                            "#E50914" to "Red",      // Netflix Red
+                            "#FFC107" to "Gold",     // Amber Gold
+                            "#00E5FF" to "Neon Blue",  // Neon Blue
+                            "#00E676" to "Green",     // Emerald Green
+                            "#9C27B0" to "Purple"     // Purple
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),

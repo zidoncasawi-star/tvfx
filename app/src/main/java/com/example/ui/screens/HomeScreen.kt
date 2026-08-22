@@ -172,7 +172,7 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = if (activePlaylist != null) "الاشتراك نشط! يرجى تصفح القنوات أو الأفلام من القائمة السفلية لتحميل المحتوى" else "لا يوجد محتوى بعد — يرجى تفعيل اشتراكك واستيراد المحتوى من شاشة حسابي",
+                    text = if (activePlaylist != null) "Subscription active! Browse channels or movies from the bottom menu to load content" else "No content yet — please activate your subscription and import content from the Account screen",
                     color = Color.White,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 32.dp)
@@ -197,21 +197,21 @@ fun HomeScreen(
 
     val filteredMovies = remember(movies, selectedCategory, searchQuery) {
         movies.filter {
-            (selectedCategory == "الكل" || it.category.contains(selectedCategory)) &&
+            (selectedCategory == "All" || it.category.contains(selectedCategory)) &&
                     (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
         }
     }
 
     val filteredChannels = remember(channels, selectedCategory, searchQuery) {
         channels.filter {
-            (selectedCategory == "الكل" || it.category.contains(selectedCategory)) &&
+            (selectedCategory == "All" || it.category.contains(selectedCategory)) &&
                     (searchQuery.isEmpty() || it.name.contains(searchQuery, ignoreCase = true))
         }
     }
 
     val filteredSeries = remember(series, selectedCategory, searchQuery) {
         series.filter {
-            (selectedCategory == "الكل" || it.category.contains(selectedCategory)) &&
+            (selectedCategory == "All" || it.category.contains(selectedCategory)) &&
                     (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
         }
     }
@@ -225,7 +225,7 @@ fun HomeScreen(
                 val matchesCountry = selectedCountry.keywords.any { keyword ->
                     categoryName.lowercase().contains(keyword)
                 }
-                val matchesCategory = selectedCategory == "الكل" || categoryName == selectedCategory
+                val matchesCategory = selectedCategory == "All" || categoryName == selectedCategory
                 matchesCountry && matchesCategory
             }
         }
@@ -390,12 +390,12 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("ابحث عن القنوات، الأفلام، أو المسلسلات...", color = Color.Gray) },
+                placeholder = { Text("Search channels, movies, or series...", color = Color.Gray) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NetflixRed) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray)
+                            Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray)
                         }
                     }
                 },
@@ -416,7 +416,7 @@ fun HomeScreen(
                 selectedCountryCode = selectedCountryCode,
                 onCountrySelect = { code ->
                     selectedCountryCode = code
-                    onCategorySelect("الكل") // Reset specific category chip on country change
+                    onCategorySelect("All") // Reset specific category chip on country change
                 },
                 availableCountries = availableCountries,
                 modifier = Modifier.fillMaxWidth()
@@ -430,7 +430,7 @@ fun HomeScreen(
             if (continueWatchingList.isNotEmpty() && searchQuery.isEmpty()) {
                 item {
                     HistoryHorizontalList(
-                        title = "متابعة المشاهدة",
+                        title = "Continue Watching",
                         historyList = continueWatchingList,
                         onHistoryClick = { item ->
                             onPlayMedia(
@@ -452,7 +452,7 @@ fun HomeScreen(
             if (filteredMovies.isNotEmpty()) {
                 item {
                     MovieHorizontalList(
-                        title = "الأفلام الأكثر مشاهدة 🎬",
+                        title = "Most Watched Movies 🎬",
                         movies = filteredMovies,
                         onMovieClick = onMovieClick,
                         onFavoriteToggle = onToggleMovieFav
@@ -464,7 +464,7 @@ fun HomeScreen(
             if (filteredSeries.isNotEmpty()) {
                 item {
                     SeriesHorizontalList(
-                        title = "المسلسلات الحصرية 📺",
+                        title = "Exclusive Series 📺",
                         seriesList = filteredSeries,
                         onSeriesClick = onSeriesClick,
                         onFavoriteToggle = onToggleSeriesFav
@@ -517,7 +517,7 @@ fun HomeScreen(
                             CircularProgressIndicator(color = NetflixRed, modifier = Modifier.size(28.dp))
                         } else {
                             OutlinedButton(onClick = { loadNextCategoryManually() }) {
-                                Text("تحميل المزيد من التصنيفات")
+                                Text("Load More Categories")
                             }
                         }
                     }
@@ -569,7 +569,7 @@ fun HomeScreen(
                         contentAlignment = androidx.compose.ui.Alignment.Center
                     ) {
                         Text(
-                            text = "لا توجد نتائج مطابقة لهذه اللغة في اشتراكك الحالي",
+                            text = "No results found for this language in your current subscription",
                             color = Color.Gray,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold

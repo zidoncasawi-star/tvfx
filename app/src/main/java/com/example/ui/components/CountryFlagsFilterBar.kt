@@ -255,7 +255,7 @@ fun CountryFlagsFilterBar(
 
     Column(modifier = modifier.padding(vertical = 4.dp)) {
         Text(
-            text = "تصفية حسب اللغة",
+            text = "Filter by Language",
             color = Color.White.copy(alpha = 0.9f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,

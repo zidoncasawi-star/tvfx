@@ -122,7 +122,7 @@ fun MediaDetailSheet(
                             .padding(12.dp)
                             .background(Color.Black.copy(0.6f), RoundedCornerShape(20.dp))
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
 
                     Column(
@@ -136,7 +136,7 @@ fun MediaDetailSheet(
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = if (movie != null) "فيلم" else "مسلسل VIP",
+                                    text = if (movie != null) "Movie" else "VIP Series",
                                     color = Color.White,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -196,7 +196,7 @@ fun MediaDetailSheet(
                             ) {
                                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("تشغيل", fontWeight = FontWeight.Bold)
+                                Text("Play", fontWeight = FontWeight.Bold)
                             }
 
                             if (onDownloadMovie != null) {
@@ -210,7 +210,7 @@ fun MediaDetailSheet(
                                         contentDescription = null
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("تحميل")
+                                    Text("Download")
                                 }
                             }
 
@@ -224,7 +224,7 @@ fun MediaDetailSheet(
                                     contentDescription = null
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(if (movie.isFavorite) "المفضلة" else "المفضلة")
+                                Text("Favorites")
                             }
                         }
                     }
@@ -237,7 +237,7 @@ fun MediaDetailSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "اختيار الموسم والحلقة",
+                                text = "Choose Season & Episode",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -251,7 +251,7 @@ fun MediaDetailSheet(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = if (series.isFavorite) "في المفضلة" else "إضافة للمفضلة",
+                                    text = if (series.isFavorite) "In Favorites" else "Add to Favorites",
                                     color = Color.White,
                                     fontSize = 12.sp
                                 )
@@ -272,7 +272,7 @@ fun MediaDetailSheet(
                                         onClick = { selectedSeason = season },
                                         label = {
                                             Text(
-                                                text = "الموسم $season",
+                                                text = "Season $season",
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                 color = if (isSelected) Color.White else Color.LightGray
                                             )
@@ -318,7 +318,7 @@ fun MediaDetailSheet(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.PlayArrow,
-                                        contentDescription = "تشغيل",
+                                        contentDescription = "Play",
                                         tint = Color.White,
                                         modifier = Modifier.align(Alignment.Center)
                                     )
@@ -332,7 +332,7 @@ fun MediaDetailSheet(
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "${episode.duration} • اضغط للتشغيل الفوري",
+                                        text = "${episode.duration} • Tap to play instantly",
                                         color = Color.Gray,
                                         fontSize = 11.sp
                                     )
@@ -400,7 +400,7 @@ private fun WideMediaDetailOverlay(
                     .padding(24.dp)
                     .background(Color.Black.copy(0.6f), RoundedCornerShape(20.dp))
             ) {
-                Icon(Icons.Default.Close, contentDescription = "إغلاق", tint = Color.White)
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
             }
 
             Row(modifier = Modifier.fillMaxSize()) {
@@ -414,7 +414,7 @@ private fun WideMediaDetailOverlay(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(color = NetflixRed, shape = RoundedCornerShape(4.dp)) {
                             Text(
-                                text = if (movie != null) "فيلم" else "مسلسل",
+                                text = if (movie != null) "Movie" else "Series",
                                 color = Color.White,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -468,7 +468,7 @@ private fun WideMediaDetailOverlay(
                             ) {
                                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("تشغيل", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Play", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             }
                             OutlinedButton(
                                 onClick = { onToggleFavoriteMovie(movie) },
@@ -481,7 +481,7 @@ private fun WideMediaDetailOverlay(
                                     contentDescription = null
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("المفضلة")
+                                Text("Favorites")
                             }
                         }
                     } else if (series != null) {
@@ -495,7 +495,7 @@ private fun WideMediaDetailOverlay(
                             ) {
                                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("تشغيل", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Play", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             }
                             OutlinedButton(
                                 onClick = { onToggleFavoriteSeries(series) },
@@ -508,7 +508,7 @@ private fun WideMediaDetailOverlay(
                                     contentDescription = null
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("المفضلة")
+                                Text("Favorites")
                             }
                         }
                     }
@@ -522,7 +522,7 @@ private fun WideMediaDetailOverlay(
                             .padding(end = 56.dp, top = 64.dp, bottom = 32.dp)
                     ) {
                         Text(
-                            text = "الحلقات",
+                            text = "Episodes",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -539,7 +539,7 @@ private fun WideMediaDetailOverlay(
                                     FilterChip(
                                         selected = isSelected,
                                         onClick = { onSeasonSelect(season) },
-                                        label = { Text("الموسم $season") },
+                                        label = { Text("Season $season") },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = NetflixRed,
                                             selectedLabelColor = Color.White
@@ -588,7 +588,7 @@ private fun WideMediaDetailOverlay(
                                         }
                                         Icon(
                                             imageVector = Icons.Default.PlayArrow,
-                                            contentDescription = "تشغيل",
+                                            contentDescription = "Play",
                                             tint = Color.White
                                         )
                                     }

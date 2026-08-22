@@ -29,7 +29,7 @@ data class ChannelEntity(
     val name: String,
     val streamUrl: String,
     val logoUrl: String = "",
-    val category: String = "عام",
+    val category: String = "General",
     val channelNum: Int = 0,
     val epgNow: String = "",
     val epgNext: String = "",
@@ -44,10 +44,10 @@ data class MovieEntity(
     val streamUrl: String,
     val posterUrl: String = "",
     val backdropUrl: String = "",
-    val category: String = "أفلام",
+    val category: String = "Movies",
     val rating: String = "8.5",
     val releaseYear: String = "2024",
-    val duration: String = "120 دقيقة",
+    val duration: String = "120 min",
     val plot: String = "",
     val isFavorite: Boolean = false
 )
@@ -59,7 +59,7 @@ data class SeriesEntity(
     val title: String,
     val posterUrl: String = "",
     val backdropUrl: String = "",
-    val category: String = "مسلسلات",
+    val category: String = "Series",
     val rating: String = "8.8",
     val releaseYear: String = "2024",
     val plot: String = "",
@@ -74,7 +74,7 @@ data class Episode(
     val episodeNum: Int,
     val title: String,
     val streamUrl: String,
-    val duration: String = "45 دقيقة",
+    val duration: String = "45 min",
     val plot: String = ""
 )
 
@@ -153,10 +153,10 @@ data class UserAccountEntity(
 )
 
 enum class MainTab(val titleAr: String) {
-    HOME("الرئيسية"),
-    LIVE_TV("القنوات المباشرة"),
-    MOVIES("الأفلام"),
-    SERIES("المسلسلات"),
-    FAVORITES("المفضلة"),
-    USER_ACCOUNT("حسابي")
+    HOME("Home"),
+    LIVE_TV("Live TV"),
+    MOVIES("Movies"),
+    SERIES("Series"),
+    FAVORITES("Favorites"),
+    USER_ACCOUNT("My Account")
 }

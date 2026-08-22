@@ -35,7 +35,7 @@ fun SeriesScreen(
     var sortOption by remember { mutableStateOf(SortOption.DEFAULT) }
 
     val categories = remember(seriesList, xtreamCategories) {
-        val list = mutableListOf("الكل")
+        val list = mutableListOf("All")
         if (xtreamCategories.isNotEmpty()) {
             list.addAll(xtreamCategories.map { it.id })
         } else {
@@ -46,14 +46,14 @@ fun SeriesScreen(
 
     val categoryNames = remember(seriesList, xtreamCategories) {
         val map = mutableMapOf<String, String>()
-        map["الكل"] = "الكل"
+        map["All"] = "All"
         xtreamCategories.forEach { map[it.id] = it.name }
         seriesList.forEach { if (!map.containsKey(it.category)) map[it.category] = it.category }
         map
     }
 
     LaunchedEffect(selectedCategory) {
-        if (selectedCategory != "الكل" && xtreamCategories.any { it.id == selectedCategory }) {
+        if (selectedCategory != "All" && xtreamCategories.any { it.id == selectedCategory }) {
             val hasSeries = seriesList.any { it.category == selectedCategory }
             if (!hasSeries) {
                 onLoadCategoryStreams(selectedCategory)
@@ -70,7 +70,7 @@ fun SeriesScreen(
 
     val filteredSeries = remember(seriesList, selectedCategory, searchQuery, sortOption) {
         val filtered = seriesList.filter {
-            (selectedCategory == "الكل" || it.category == selectedCategory) &&
+            (selectedCategory == "All" || it.category == selectedCategory) &&
                     (searchQuery.isEmpty() || it.title.contains(searchQuery, ignoreCase = true))
         }
         when (sortOption) {
@@ -88,12 +88,12 @@ fun SeriesScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("بحث في المسلسلات...", color = Color.Gray) },
+            placeholder = { Text("Search series...", color = Color.Gray) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = NetflixRed) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "مسح", tint = Color.Gray)
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray)
                     }
                 }
             },
@@ -132,7 +132,7 @@ fun SeriesScreen(
                 )
             }
 
-            if (selectedCategory == "الكل" && searchQuery.isEmpty() && nextUnloadedCategory != null) {
+            if (selectedCategory == "All" && searchQuery.isEmpty() && nextUnloadedCategory != null) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
@@ -145,7 +145,7 @@ fun SeriesScreen(
                                 isLoadingMore = true
                                 onLoadCategoryStreams(nextUnloadedCategory.id)
                             }) {
-                                Text("تحميل المزيد من التصنيفات")
+                                Text("Load More Categories")
                             }
                         }
                     }
