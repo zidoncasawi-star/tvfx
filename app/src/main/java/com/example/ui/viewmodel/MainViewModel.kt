@@ -347,12 +347,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if (remoteJson != null) {
                         if (remoteJson.optBoolean("success", false)) {
                             // Remote Login Success! Create or update local account
-                            val encryptedPass = com.example.util.SecurityUtils.encrypt(pass)
+                            val hashedPass = com.example.util.SecurityUtils.hashPassword(pass)
                             val newAccount = UserAccountEntity(
                                 fullName = remoteJson.optString("fullName", "مستخدم روديكس"),
                                 email = remoteJson.optString("email", identifier),
                                 username = remoteJson.optString("username", identifier),
-                                passwordHash = encryptedPass,
+                                passwordHash = hashedPass,
                                 phoneNumber = remoteJson.optString("phoneNumber", ""),
                                 activationCode = remoteJson.optString("activationCode", ""),
                                 adminServerUrl = adminUrl.ifBlank { "https://app.flixplayer.pro" },

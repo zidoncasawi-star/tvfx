@@ -17,8 +17,8 @@ android {
     applicationId = "com.iptv.livetelevision.flixtv.iptvplayer.stream.tv.live.watch.streaming.chromecast"
     minSdk = 24
     targetSdk = 36
-    versionCode = 27
-    versionName = "1.1.1"
+    versionCode = 28
+    versionName = "1.2.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

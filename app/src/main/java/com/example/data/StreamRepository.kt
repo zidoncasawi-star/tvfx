@@ -23,7 +23,7 @@ class StreamRepository(private val db: AppDatabase) {
         if (existing != null) {
             return Result.failure(Exception("البريد الإلكتروني أو اسم المستخدم مسجل بالفعل محلياً"))
         }
-        val passHash = com.example.util.SecurityUtils.encrypt(passwordRaw)
+        val passHash = com.example.util.SecurityUtils.hashPassword(passwordRaw)
         db.userAccountDao().logoutAllAccounts()
         
         val account = UserAccountEntity(
@@ -57,8 +57,7 @@ class StreamRepository(private val db: AppDatabase) {
         val account = db.userAccountDao().findAccountByIdentifier(identifier.trim())
             ?: return Result.failure(Exception("اسم المستخدم أو البريد الإلكتروني غير صحيح"))
 
-        val decPass = com.example.util.SecurityUtils.decrypt(account.passwordHash)
-        if (decPass != passwordRaw) {
+        if (!com.example.util.SecurityUtils.verifyPassword(passwordRaw, account.passwordHash)) {
             return Result.failure(Exception("كلمة المرور غير صحيحة"))
         }
 
